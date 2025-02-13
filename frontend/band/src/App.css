@@ -1,0 +1,46 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Lato";
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+#app-main {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+main div {
+  height: 100%;
+}
+
+#hubList {
+  width: 5rem;
+}
+
+#hub {
+  width: 15rem;
+}
+
+#chat {
+  flex-grow: 1;
+}
+
+#users {
+  width: 16rem;
+}

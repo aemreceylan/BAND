@@ -1,0 +1,23 @@
+.hub-category {
+}
+
+.hub-category-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--dark-font-medium-gray);
+}
+
+.hub-category-header:hover {
+  color: var(--dark-font-light-gray);
+}
+
+.hub-category-channelList-close {
+  display: none;
+  padding: 0.1rem 0.1rem 0.1rem 0.4rem;
+}
+
+.hub-category-channelList-open {
+  padding: 0.1rem 0.1rem 0.1rem 0.4rem;
+}
