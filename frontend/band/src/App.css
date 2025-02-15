@@ -31,10 +31,12 @@ main div {
 
 #hubList {
   width: 5rem;
+  flex-shrink: 0;
 }
 
 #hub {
   width: 15rem;
+  flex-shrink: 0;
 }
 
 #chat {
@@ -43,4 +45,5 @@ main div {
 
 #users {
   width: 16rem;
+  flex-shrink: 0;
 }

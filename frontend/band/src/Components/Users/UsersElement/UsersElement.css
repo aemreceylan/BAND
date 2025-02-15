@@ -1,0 +1,25 @@
+.usersElement {
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.usersElement:hover {
+  background-color: var(--dark-background-light-gray);
+}
+
+.usersElement-img {
+  height: 2rem;
+}
+
+.usersElement-img img {
+  width: 100%;
+  height: 100%;
+}
+
+.usersElement-content {
+  display: flex;
+  align-items: center;
+}

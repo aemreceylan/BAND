@@ -1,7 +1,6 @@
 import Panel from "../Panel/Panel";
 import HubListElement from "./HubElement/HubListElement";
 import "./HubList.css";
-import noProfilePhoto from "../../assets/img/no-profile-photo.png";
 
 export default function HubList() {
   return (
@@ -10,7 +9,7 @@ export default function HubList() {
         <Panel>
           <div id="hubList-panel">
             <div id="hubList-profile-button">
-              <img src={noProfilePhoto} />
+              <img src="img/no-profile-photo.png" />
             </div>
           </div>
         </Panel>

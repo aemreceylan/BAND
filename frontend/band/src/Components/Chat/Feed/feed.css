@@ -1,0 +1,17 @@
+#feed {
+  width: 100%;
+  flex-grow: 1;
+  padding: 1rem;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding-bottom: 4rem;
+}
+
+::-webkit-scrollbar {
+  background-color:transparent;
+  width: 0.5rem;
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--dark-background-dark-gray);
+    border-radius: 1rem;
+}

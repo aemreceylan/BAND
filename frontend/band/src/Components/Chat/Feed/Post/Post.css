@@ -1,0 +1,33 @@
+.post{
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+.post-account{
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.post-account img{
+    width: 100%;
+    height: 100%;
+}
+
+.post-content{
+    flex-grow: 1;
+}
+
+.post-nick{
+    color: var(--dark-font-medium-gray);
+}
+
+.post-message-list{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}

@@ -6,13 +6,13 @@ export default function Category() {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
-      <div
-        onClick={() => {
-          setIsOpen((prev) => !prev);
-        }}
-        className="hub-category"
-      >
-        <div className="hub-category-header">
+      <div className="hub-category">
+        <div
+          className="hub-category-header"
+          onClick={() => {
+            setIsOpen((prev) => !prev);
+          }}
+        >
           <span>
             {isOpen ? (
               <svg

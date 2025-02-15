@@ -6,22 +6,32 @@ import "./roots.css";
 import "./fonts.css";
 import "./App.css";
 import { useEffect } from "react";
+import WSProvider from "./Contexts/WSProvider";
+import io from "socket.io-client";
+const socket = io("http://localhost:3000");
 
 export default function App() {
-  // useEffect(() => {
-  //   document.addEventListener("contextmenu", (e) => e.preventDefault());
-  // }, []);
+  useEffect(() => {
+    document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+    socket.on("first_message", (arg, callback) => {
+      console.log(arg);
+      callback("sa");
+    });
+  }, []);
 
   return (
     <>
-      <div id="app">
-        <div id="app-main">
-          <HubList />
-          <Hub />
-          <Chat />
-          <Users />
+      <WSProvider>
+        <div id="app">
+          <div id="app-main">
+            <HubList />
+            <Hub />
+            <Chat />
+            <Users />
+          </div>
         </div>
-      </div>
+      </WSProvider>
     </>
   );
 }
