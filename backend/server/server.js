@@ -1,6 +1,7 @@
 const express = require("express");
 const { Server } = require("socket.io");
 const { createServer } = require("http");
+const mongoose = require("mongoose");
 
 const app = express();
 const port = 3000;
@@ -12,22 +13,12 @@ const io = new Server(httpServer, {
   },
 });
 
+mongoose.connect("mongodb://localhost:27017/");
+
 app.use(express.static(__dirname + "/public"));
 
 app.use("/", (req, res) => {
   res.end();
-});
-
-io.on("connection", (socket) => {
-  console.log(io.engine.clientsCount);
-
-  socket.emit("first_message", "selam selam", (response) => {
-    console.log(response);
-  });
-
-  socket.on("disconnect", (socket) => {
-    console.log("disconnect");
-  });
 });
 
 httpServer.listen(port, () => {

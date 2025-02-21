@@ -13,11 +13,6 @@ const socket = io("http://localhost:3000");
 export default function App() {
   useEffect(() => {
     document.addEventListener("contextmenu", (e) => e.preventDefault());
-
-    socket.on("first_message", (arg, callback) => {
-      console.log(arg);
-      callback("sa");
-    });
   }, []);
 
   return (
