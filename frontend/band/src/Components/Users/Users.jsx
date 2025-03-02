@@ -1,10 +1,24 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Panel from "../Panel/Panel";
 import "./Users.css";
-import Userselement from "./UsersElement/UsersElement";
+import UsersElement from "./UsersElement/UsersElement";
+import { WSContext } from "../../Contexts/WSProvider";
 
 export default function Users() {
   const [isOpen, setIsOpen] = useState(true);
+  const { userList } = useContext(WSContext);
+  const [onlineList, setOnlineList] = useState([]);
+  const [offlineList, setOfflineList] = useState([]);
+
+  useEffect(() => {
+    setOnlineList([]);
+    setOfflineList([]);
+    userList?.forEach((element) => {
+      if (element.isOnline) setOnlineList((prev) => [...prev, element]);
+      else setOfflineList((prev) => [...prev, element]);
+    });
+  }, [userList]);
+
   return (
     <>
       <div id="users" className={!isOpen ? "users-closed" : ""}>
@@ -52,56 +66,22 @@ export default function Users() {
         <div id="users-list">
           <div className="users-list-category">
             <div className="users-list-category-title">
-              <span>{"Çevrimiçi - 4"}</span>
+              <span>Çevrimiçi - {onlineList.length}</span>
             </div>
             <div className="user-list-category-list">
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
+              {onlineList?.map((element) => {
+                if (element.isOnline) return <UsersElement data={element} />;
+              })}
             </div>
           </div>
           <div className="users-list-category">
             <div className="users-list-category-title">
-              <span>{"Çevrimdışı - 36"}</span>
+              <span>Çevrimdışı - {offlineList.length}</span>
             </div>
             <div className="user-list-category-list">
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement /> 
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement /> 
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement /> 
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement /> 
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement /> 
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
-              <Userselement />
+              {offlineList?.map((element) => {
+                if (!element.isOnline) return <UsersElement data={element} />;
+              })}
             </div>
           </div>
         </div>

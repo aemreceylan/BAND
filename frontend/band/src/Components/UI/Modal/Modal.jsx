@@ -1,12 +1,10 @@
 import "./modal.css";
 
-export default function Modal({ children, props }) {
+export default function Modal({ children }) {
   return (
     <>
       <div id="modal-backdrop"></div>
-      <div id="modal" style={props.style}>
-        {children}
-      </div>
+      <div id="modal">{children}</div>
     </>
   );
 }

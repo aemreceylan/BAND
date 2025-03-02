@@ -1,14 +1,14 @@
 import "./UsersElement.css";
 
-export default function Userselement() {
+export default function UsersElement({data}) {
   return (
     <>
       <div className="usersElement">
         <div className="usersElement-img">
-            <img src="img/no-profile-photo.png"/>
+            <img src={data.profilePhotoURL!=""?data.profilePhotoURL:"img/no-profile-photo.png"}/>
         </div>
         <div className="usersElement-content">
-          <div className="usersElement-nick"><span>{"Nick"}</span></div>
+          <div className="usersElement-nick"><span>{data.nick}</span></div>
         </div>
       </div>
     </>
