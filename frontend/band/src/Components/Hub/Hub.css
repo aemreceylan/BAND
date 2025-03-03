@@ -2,7 +2,7 @@
   background-color: var(--dark-background-medium-gray);
 }
 
-.hub-closed{
+.hub-closed {
   width: min-content !important;
 }
 
@@ -13,14 +13,14 @@
   gap: 1rem;
 }
 
-#hub-panel{
+#hub-panel {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
 }
 
-#hub-panel-title{
+#hub-panel-title {
   flex-grow: 1;
   display: flex;
   align-items: center;
@@ -30,7 +30,7 @@
   padding-left: 1rem;
 }
 
-#hub-panel-buttons{
+#hub-panel-buttons {
   margin-left: 1em;
   display: flex;
   color: var(--dark-font-medium-gray);
@@ -38,15 +38,78 @@
   align-items: center;
 }
 
-#hub-panel-buttons div{
+#hub-panel-buttons div {
   cursor: pointer;
   height: 100%;
 }
 
-#hub-panel-buttons div:hover{
+#hub-panel-buttons div:hover {
   color: var(--dark-font-light-gray);
 }
 
-#hub-panel-buttons-frame{
+#hub-panel-buttons-frame {
   font-size: 1.5rem;
+}
+
+#hubSettings-container {
+  height: 100vh;
+  width: 60vw;
+  background-color: var(--dark-background-medium-gray);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 0.2rem;
+}
+
+#hubSettings-container-closeButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 1rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  color: var(--dark-font-medium-gray);
+  border: 0.1rem solid var(--dark-font-medium-gray);
+}
+
+#hubSettings-container-closeButton:hover {
+  color: var(--dark-font-light-gray);
+  border: 0.1rem solid var(--dark-font-light-gray);
+}
+
+#hubSettings-container-option-buttons{
+  position: relative;
+  display:flex;
+  justify-content: center;
+  color: var(--dark-font-medium-gray);
+  border-bottom: 0.1rem solid black;
+  height: 3rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.hubSettings-container-option-button{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 10rem;
+  height: 100%;
+  cursor: pointer;
+  border-bottom: 0.1rem solid transparent;
+  font-size: 1.1rem;
+
+}
+
+.hubSettings-container-option-button:hover {
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: var(--dark-background-light-gray);
+}
+
+.hubSettings-container-option-button-selected {
+  border-bottom: 0.1rem solid black;
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.4);
+  background-color: var(--dark-background-light-gray);
 }

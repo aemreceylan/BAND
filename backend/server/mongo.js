@@ -15,6 +15,8 @@ function createUser(data) {
         nick: data.nick,
         password: data.password,
       });
+      const count = await User.countDocuments({});
+      if (count == 0) newUser.roles = [1];
       await newUser.save();
       resolve();
     } catch (err) {

@@ -2,9 +2,12 @@ import Category from "./Category/Category";
 import Panel from "../Panel/Panel";
 import "./Hub.css";
 import { useState } from "react";
+import Modal from "../UI/Modal/Modal";
 
 export default function Hub() {
   const [isOpen, setIsOpen] = useState(true);
+  const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(0);
   return (
     <>
       <div id="hub" className={!isOpen ? "hub-closed" : ""}>
@@ -12,7 +15,13 @@ export default function Hub() {
           <div id="hub-panel">
             <div id="hub-panel-title">{"HUB"}</div>
             <div id="hub-panel-buttons">
-              <div id="hub-panel-buttons-settings">
+              <div
+                id="hub-panel-buttons-settings"
+                onClick={() => {
+                  setSettingsPanelIsOpen(true);
+                }}
+                title="Sunucu Ayarları"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="1em"
@@ -65,6 +74,48 @@ export default function Hub() {
           <Category />
         </div>
       </div>
+      {settingsPanelIsOpen && (
+        <Modal
+          backdropStyle={{
+            backgroundColor: "var(--dark-background-dark-gray)",
+          }}
+        >
+          <div id="hubSettings-container">
+            <div id="hubSettings-container-content">
+              <div id="hubSettings-container-option-buttons">
+                <div
+                  id="hubSettings-container-closeButton"
+                  onClick={() => setSettingsPanelIsOpen(false)}
+                >
+                  X
+                </div>
+                <div
+                  className={`hubSettings-container-option-button ${
+                    selectedOption == 0
+                      ? "hubSettings-container-option-button-selected"
+                      : ""
+                  }`}
+                  id="hubSettings-container-option-buttons-personal"
+                  onClick={()=>setSelectedOption(0)}
+                >
+                  <span>Kişisel Ayarlar</span>
+                </div>
+                <div
+                  className={`hubSettings-container-option-button ${
+                    selectedOption == 1
+                      ? "hubSettings-container-option-button-selected"
+                      : ""
+                  }`}
+                  id="hubSettings-container-option-buttons-hub"
+                  onClick={()=>setSelectedOption(1)}
+                >
+                  <span>Hub Ayarları</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </>
   );
 }

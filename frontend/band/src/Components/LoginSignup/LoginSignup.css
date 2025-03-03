@@ -1,7 +1,3 @@
-#modal-backdrop {
-  background-color: var(--dark-background-dark-gray) !important;
-}
-
 #loginSignup {
   width: 40rem;
   background-color: var(--dark-background-light-gray);

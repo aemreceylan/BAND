@@ -8,7 +8,7 @@ export default function LoginSignup() {
   const { setLogin, setSocket, io } = useContext(WSContext);
   return (
     <>
-      <Modal>
+      <Modal backdropStyle={{backgroundColor:"var(--dark-background-dark-gray)"}}>
         <div id="loginSignup">
           <div id="loginSignup-top-title">
             <span>{isRegisterScreen ? "Kayıt Ol" : "Giriş Yap"}</span>

@@ -20,11 +20,15 @@ const userSchema = new mongoose.Schema({
   },
   lastLoginDate: {
     type: Date,
-    default:null
+    default: null,
   },
   roles: {
     type: [String],
     default: [0],
+  },
+  isOnline: {
+    type: Boolean,
+    default: false,
   },
   isBanned: {
     type: Boolean,

@@ -69,8 +69,8 @@ export default function Users() {
               <span>Çevrimiçi - {onlineList.length}</span>
             </div>
             <div className="user-list-category-list">
-              {onlineList?.map((element) => {
-                if (element.isOnline) return <UsersElement data={element} />;
+              {onlineList?.map((element,index) => {
+                if (element.isOnline) return <UsersElement key={index} data={element} />;
               })}
             </div>
           </div>
@@ -79,8 +79,8 @@ export default function Users() {
               <span>Çevrimdışı - {offlineList.length}</span>
             </div>
             <div className="user-list-category-list">
-              {offlineList?.map((element) => {
-                if (!element.isOnline) return <UsersElement data={element} />;
+              {offlineList?.map((element,index) => {
+                if (!element.isOnline) return <UsersElement key={index} data={element} />;
               })}
             </div>
           </div>
