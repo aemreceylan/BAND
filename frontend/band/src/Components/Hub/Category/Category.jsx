@@ -2,7 +2,7 @@ import Channel from "./Channel/Channel";
 import "./Category.css";
 import { useState } from "react";
 
-export default function Category() {
+export default function Category({ channelList }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -51,10 +51,9 @@ export default function Category() {
               : "hub-category-channelList-close"
           }
         >
-          <Channel />
-          <Channel />
-          <Channel />
-          <Channel />
+          {channelList?.map((element,index) => {
+            return <Channel key={index} data={element} />;
+          })}
         </div>
       </div>
     </>

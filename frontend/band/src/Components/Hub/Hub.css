@@ -113,3 +113,7 @@
   box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.4);
   background-color: var(--dark-background-light-gray);
 }
+
+#hubSettings-container-content{
+  color:var(--dark-font-medium-gray)
+}

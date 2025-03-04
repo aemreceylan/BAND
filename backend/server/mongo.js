@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import User from "./models/User.js";
+import Channel from "./models/Channel.js";
 
 async function init() {
   try {
@@ -9,6 +10,7 @@ async function init() {
     console.log(err);
   }
 }
+
 function createUser(data) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -43,6 +45,21 @@ function checkUser(data) {
   });
 }
 
+function createChannel(data) {
+  return new Promise(async (resolve, reject) => {
+    const newChannel = new Channel({
+      name: data.name,
+    });
+    try {
+      await newChannel.save();
+      resolve();
+    } catch (err) {
+      console.log(err);
+      reject();
+    }
+  });
+}
+
 export default function DB() {
-  return { init, createUser, checkUser };
+  return { init, createUser, checkUser, createChannel };
 }

@@ -1,24 +1,26 @@
 import Category from "./Category/Category";
 import Panel from "../Panel/Panel";
 import "./Hub.css";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Modal from "../UI/Modal/Modal";
 import { WSContext } from "../../Contexts/WSProvider";
-import userValidation from "../../hooks/userValidation";
+import userValidation from "../../hooks/userValidation.js";
 
 export default function Hub() {
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
-  const { userId } = useContext(WSContext);
-  const [isApproved, setIsApproved] = useState();
-
+  const { userId, channelList } = useContext(WSContext);
+  const [isApproved, setIsApproved] = useState(false);
   useEffect(() => {
     (async () => {
       if (selectedOption == 1) {
         setIsApproved(await userValidation(userId));
       }
     })();
+    return () => {
+      setIsApproved(false);
+    };
   }, [selectedOption]);
 
   return (
@@ -81,10 +83,7 @@ export default function Hub() {
           </div>
         </Panel>
         <div id="hub-categories">
-          <Category />
-          <Category />
-          <Category />
-          <Category />
+          <Category channelList={channelList} />
         </div>
       </div>
       {settingsPanelIsOpen && (
@@ -125,19 +124,50 @@ export default function Hub() {
               </div>
             </div>
             <div id="hubSettings-container-content">
-              {selectedOption == 0 && "Kişisel ayarlar"}
-              {selectedOption == 1 && isApproved && (
+              {selectedOption == 0 ? (
+                "Kişisel Ayarlar"
+              ) : selectedOption == 1 && !isApproved ? (
+                "Burayı görmeye yetkiniz yok"
+              ) : selectedOption == 1 && isApproved ? (
                 <>
-                  <div id="hubSettings">
-                    <div id="addChannel">
-                      <label htmlFor="add-channel" onClick={() => {}}>
-                        Kanal Ekle
-                      </label>
-                      <input type="text" id="add-channel" />
-                      <button type="button">EKLE</button>
+                  <div id="hubSettings-container-content-hubSettings">
+                    <div id="hubSettings-container-content-hubSettings-addChannel">
+                      <form
+                        id="addChannel-form"
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          let formData = new FormData(e.target);
+                          formData = Object.fromEntries(formData.entries());
+                          try {
+                            const response = await fetch(
+                              "http://localhost:3000/set-hub-settings",
+                              {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  authorization: userId,
+                                },
+                                body: JSON.stringify(formData),
+                              }
+                            );
+                            const data = await response.json();
+                            if (!response.ok && !data.status)
+                              throw new Error(data.msg);
+                            console.log(data.msg);
+                          } catch (err) {
+                            console.log(err);
+                          }
+                        }}
+                      >
+                        <label htmlFor="add-channel-input">Kanal Ekle</label>
+                        <input type="text" id="add-channel-input" name="name" />
+                        <button type="submit">EKLE</button>
+                      </form>
                     </div>
                   </div>
                 </>
+              ) : (
+                ""
               )}
             </div>
           </div>

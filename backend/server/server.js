@@ -4,6 +4,7 @@ import { createServer } from "http";
 import DB from "./mongo.js";
 import cors from "cors";
 import User from "./models/User.js";
+import Channel from "./models/Channel.js";
 
 const app = express();
 const port = 3000;
@@ -25,40 +26,67 @@ const db = DB();
 (async () => {
   await db.init();
 
-  app.get("/get", async (req, res) => {
+  async function userValidation(req, res, next) {
     try {
-      const result = await User.findById(req.headers["authorization"]).select({
+      const result = await User.findById(req.headers.authorization).select({
         roles: 1,
       });
-      if (result == null) return res.status(404).json({status:false,msg:"User not found"});
-      if (!Array.from(result.roles).includes("1"))
-        return res.status(401).json({status:false,msg:"Unauthorized user"});
-      return res.status(202).json({status:true,msg:"User authorization approved"})
+      if (result == null) {
+        return res.status(404).json({ status: false, msg: "User not found" });
+      } else if (!Array.from(result.roles).includes("1")) {
+        return res
+          .status(401)
+          .json({ status: false, msg: "Unauthorized user" });
+      }
+      next();
     } catch (err) {
       console.log(err);
-      return res.status(500).json({status:false,msg:"Error"});
+      return res.status(500).json({ status: false, msg: "Error" });
     }
+  }
+
+  app.post("/set-hub-settings", userValidation, async (req, res) => {
+    try {
+      await db.createChannel(req.body);
+      res.status(201).json({ status: true, msg: "Channel created" });
+
+      io.emit(
+        "channelList",
+        JSON.stringify(await Channel.find({}).select({ name: 1 }))
+      );
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ status: false, msg: "Error" });
+    }
+  });
+
+  app.get("/user-validation", userValidation, (req, res) => {
+    return res
+      .status(202)
+      .json({ status: true, msg: "User authorization approved" });
   });
 
   app.post("/login", async (req, res) => {
     try {
       const id = await db.checkUser(req.body);
-      res.status(200).json({ msg: "Login successful", id: id });
+      res.status(202).json({ status: true, msg: "Login successful", id: id });
     } catch (err) {
-      res.status(401).json({ msg: "Login failed = " + err });
+      res.status(400).json({ status: false, msg: "Login failed = " + err });
     }
   });
 
   app.post("/signup", async (req, res) => {
     if (req.body.password != req.body.password_confirm)
-      res.status(400).end("Passwords do not match");
+      res.status(400).end({ status: false, msg: "Passwords do not match" });
     else {
-      const { password_confirm, ...userData } = req.body;
+      const { password_confirm, ..._userData } = req.body;
       try {
-        const userData = await db.createUser(userData);
-        res.status(201).json({ msg: "Registration successful" });
+        const userData = await db.createUser(_userData);
+        res.status(201).json({ status: true, msg: "Registration successful" });
       } catch (err) {
-        res.status(500).json({ msg: "Registration failed = " + err });
+        res
+          .status(500)
+          .json({ status: false, msg: "Registration failed = " + err });
       }
     }
   });
@@ -127,7 +155,10 @@ const db = DB();
     } catch (err) {
       (err) => console.log(err);
     }
-
+    socket.emit(
+      "channelList",
+      JSON.stringify(await Channel.find({}).select({ name: 1 }))
+    );
     socket.on("disconnect", () => {
       console.log("Client disconnected: " + socket.id);
       try {

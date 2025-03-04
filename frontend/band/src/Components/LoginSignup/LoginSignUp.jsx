@@ -31,7 +31,7 @@ export default function LoginSignup() {
                     body: JSON.stringify(formData),
                   });
                   const data = await response.json();
-                  if (!response.ok) throw new Error(data.msg);
+                  if (!response.ok && !data.status) throw new Error(data.msg);
                   setIsRegisterScreen(false);
                   console.log(data.msg);
                 } catch (err) {
@@ -47,9 +47,9 @@ export default function LoginSignup() {
                     body: JSON.stringify(formData),
                   });
                   const data = await response.json();
-                  if (!response.ok) throw new Error(data.msg);
+                  if (!response.ok && !data.status) throw new Error(data.msg);
                   setLogin(true);
-                  setUserId(data.id)
+                  setUserId(data.id);
                   console.log(data.msg);
                   setSocket(
                     io("localhost:3000", {
