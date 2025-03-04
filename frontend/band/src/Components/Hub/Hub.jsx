@@ -1,13 +1,26 @@
 import Category from "./Category/Category";
 import Panel from "../Panel/Panel";
 import "./Hub.css";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Modal from "../UI/Modal/Modal";
+import { WSContext } from "../../Contexts/WSProvider";
+import userValidation from "../../hooks/userValidation";
 
 export default function Hub() {
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
+  const { userId } = useContext(WSContext);
+  const [isApproved, setIsApproved] = useState();
+
+  useEffect(() => {
+    (async () => {
+      if (selectedOption == 1) {
+        setIsApproved(await userValidation(userId));
+      }
+    })();
+  }, [selectedOption]);
+
   return (
     <>
       <div id="hub" className={!isOpen ? "hub-closed" : ""}>
@@ -81,37 +94,51 @@ export default function Hub() {
           }}
         >
           <div id="hubSettings-container">
-            <div id="hubSettings-container-content">
-              <div id="hubSettings-container-option-buttons">
-                <div
-                  id="hubSettings-container-closeButton"
-                  onClick={() => setSettingsPanelIsOpen(false)}
-                >
-                  X
-                </div>
-                <div
-                  className={`hubSettings-container-option-button ${
-                    selectedOption == 0
-                      ? "hubSettings-container-option-button-selected"
-                      : ""
-                  }`}
-                  id="hubSettings-container-option-buttons-personal"
-                  onClick={()=>setSelectedOption(0)}
-                >
-                  <span>Kişisel Ayarlar</span>
-                </div>
-                <div
-                  className={`hubSettings-container-option-button ${
-                    selectedOption == 1
-                      ? "hubSettings-container-option-button-selected"
-                      : ""
-                  }`}
-                  id="hubSettings-container-option-buttons-hub"
-                  onClick={()=>setSelectedOption(1)}
-                >
-                  <span>Hub Ayarları</span>
-                </div>
+            <div id="hubSettings-container-option-buttons">
+              <div
+                id="hubSettings-container-closeButton"
+                onClick={() => setSettingsPanelIsOpen(false)}
+              >
+                X
               </div>
+              <div
+                className={`hubSettings-container-option-button ${
+                  selectedOption == 0
+                    ? "hubSettings-container-option-button-selected"
+                    : ""
+                }`}
+                id="hubSettings-container-option-buttons-personal"
+                onClick={() => setSelectedOption(0)}
+              >
+                <span>Kişisel Ayarlar</span>
+              </div>
+              <div
+                className={`hubSettings-container-option-button ${
+                  selectedOption == 1
+                    ? "hubSettings-container-option-button-selected"
+                    : ""
+                }`}
+                id="hubSettings-container-option-buttons-hub"
+                onClick={() => setSelectedOption(1)}
+              >
+                <span>Hub Ayarları</span>
+              </div>
+            </div>
+            <div id="hubSettings-container-content">
+              {selectedOption == 0 && "Kişisel ayarlar"}
+              {selectedOption == 1 && isApproved && (
+                <>
+                  <div id="hubSettings">
+                    <div id="addChannel">
+                      <label htmlFor="add-channel" onClick={() => {}}>
+                        Kanal Ekle
+                      </label>
+                      <input type="text" id="add-channel" />
+                      <button type="button">EKLE</button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </Modal>

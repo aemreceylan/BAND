@@ -26,10 +26,6 @@ const userSchema = new mongoose.Schema({
     type: [String],
     default: [0],
   },
-  isOnline: {
-    type: Boolean,
-    default: false,
-  },
   isBanned: {
     type: Boolean,
     default: false,

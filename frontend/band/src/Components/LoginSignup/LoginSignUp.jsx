@@ -5,69 +5,60 @@ import { WSContext } from "../../Contexts/WSProvider";
 
 export default function LoginSignup() {
   const [isRegisterScreen, setIsRegisterScreen] = useState(false);
-  const { setLogin, setSocket, io } = useContext(WSContext);
+  const { setLogin, setSocket, io, setUserId } = useContext(WSContext);
   return (
     <>
-      <Modal backdropStyle={{backgroundColor:"var(--dark-background-dark-gray)"}}>
+      <Modal
+        backdropStyle={{ backgroundColor: "var(--dark-background-dark-gray)" }}
+      >
         <div id="loginSignup">
           <div id="loginSignup-top-title">
             <span>{isRegisterScreen ? "Kayıt Ol" : "Giriş Yap"}</span>
           </div>
           <form
             id="loginSignup-form"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               let formData = new FormData(e.target);
               formData = Object.fromEntries(formData.entries());
               if (isRegisterScreen) {
-                fetch("http://localhost:3000/signup", {
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  method: "POST",
-                  body: JSON.stringify(formData),
-                })
-                  .then((response) => {
-                    if (response.ok) {
-                      return response.text();
-                    } else {
-                      return response.text().then((text) => {
-                        throw new Error(text);
-                      });
-                    }
-                  })
-                  .then((text) => {
-                    console.log(text);
-                    setIsRegisterScreen(false);
-                  })
-                  .catch((err) => console.log(err));
+                try {
+                  const response = await fetch("http://localhost:3000/signup", {
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                    body: JSON.stringify(formData),
+                  });
+                  const data = await response.json();
+                  if (!response.ok) throw new Error(data.msg);
+                  setIsRegisterScreen(false);
+                  console.log(data.msg);
+                } catch (err) {
+                  console.log(err);
+                }
               } else {
-                fetch("http://localhost:3000/login", {
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  method: "POST",
-                  body: JSON.stringify(formData),
-                })
-                  .then((response) => {
-                    if (response.ok) {
-                      return response.text();
-                    } else {
-                      return response.text().then((text) => {
-                        throw new Error(text);
-                      });
-                    }
-                  })
-                  .then((text) => {
-                    console.log(text);
-                    setLogin(true);
-                    setSocket(
-                      io("localhost:3000", {
-                        auth: formData,
-                      })
-                    );
-                  })
-                  .catch((err) => console.log(err));
+                try {
+                  const response = await fetch("http://localhost:3000/login", {
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                    body: JSON.stringify(formData),
+                  });
+                  const data = await response.json();
+                  if (!response.ok) throw new Error(data.msg);
+                  setLogin(true);
+                  setUserId(data.id)
+                  console.log(data.msg);
+                  setSocket(
+                    io("localhost:3000", {
+                      auth: formData,
+                    })
+                  );
+                } catch (err) {
+                  console.log(err);
+                }
               }
             }}
           >

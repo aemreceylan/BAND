@@ -1,13 +1,14 @@
 import mongoose from "mongoose";
 import User from "./models/User.js";
 
-function init() {
-  mongoose
-    .connect("mongodb://localhost:27017/bandDB")
-    .then(console.log("Connected to database"))
-    .catch((err) => console.log(err));
+async function init() {
+  try {
+    await mongoose.connect("mongodb://localhost:27017/bandDB");
+    console.log("Connected to database");
+  } catch (err) {
+    console.log(err);
+  }
 }
-
 function createUser(data) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -27,14 +28,18 @@ function createUser(data) {
 }
 
 function checkUser(data) {
-  return new Promise((resolve, reject) => {
-    User.findOne({ nick: data.nick, password: data.password })
-      .then((result) => {
-        if (result == null) {
-          reject("User not found");
-        } else resolve(result.id);
-      })
-      .catch((err) => console.log(err));
+  return new Promise(async (resolve, reject) => {
+    try {
+      const result = await User.findOne({
+        nick: data.nick,
+        password: data.password,
+      });
+      if (result == null) {
+        reject("User not found");
+      } else resolve(result.id);
+    } catch (err) {
+      console.log(err);
+    }
   });
 }
 
