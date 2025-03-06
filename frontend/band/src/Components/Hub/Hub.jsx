@@ -4,24 +4,25 @@ import "./Hub.css";
 import { useContext, useEffect, useRef, useState } from "react";
 import Modal from "../UI/Modal/Modal";
 import { WSContext } from "../../Contexts/WSProvider";
-import userValidation from "../../hooks/userValidation.js";
+import useUserValidation from "../../hooks/useUserValidation.js";
 
 export default function Hub() {
+  const { userId, channelList } = useContext(WSContext);
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
-  const { userId, channelList } = useContext(WSContext);
   const [isApproved, setIsApproved] = useState(false);
+  const { userValidation, result } = useUserValidation();
+
   useEffect(() => {
-    (async () => {
-      if (selectedOption == 1) {
-        setIsApproved(await userValidation(userId));
-      }
-    })();
-    return () => {
-      setIsApproved(false);
-    };
+    if (selectedOption == 1) {
+      userValidation(userId);
+    } 
   }, [selectedOption]);
+
+  useEffect(() => {
+    setIsApproved(result);
+  }, [result]);
 
   return (
     <>
@@ -162,6 +163,20 @@ export default function Hub() {
                         <label htmlFor="add-channel-input">Kanal Ekle</label>
                         <input type="text" id="add-channel-input" name="name" />
                         <button type="submit">EKLE</button>
+                      </form>
+                    </div>
+                    <div id="hubSettings-container-content-hubSettings-addCategory">
+                      <form
+                        id="addCategory-form"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          let formData = new FormData(e.target);
+                          formData = Object.fromEntries(formData.entries());
+                        }}
+                      >
+                        <label htmlFor="addChannel-input"> Kategori Ekle</label>
+                        <input type="text" id="addChannel-input" name="name" />
+                        <button type="submit"></button>
                       </form>
                     </div>
                   </div>
