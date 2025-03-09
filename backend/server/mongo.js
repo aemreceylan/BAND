@@ -60,6 +60,8 @@ function createChannel(data) {
   });
 }
 
+function createCategory() {}
+
 export default function DB() {
-  return { init, createUser, checkUser, createChannel };
+  return { init, createUser, checkUser, createChannel, createCategory };
 }

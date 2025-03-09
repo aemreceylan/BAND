@@ -5,6 +5,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import Modal from "../UI/Modal/Modal";
 import { WSContext } from "../../Contexts/WSProvider";
 import useUserValidation from "../../hooks/useUserValidation.js";
+import useFetch from "../../hooks/useFetch.js";
 
 export default function Hub() {
   const { userId, channelList } = useContext(WSContext);
@@ -12,17 +13,39 @@ export default function Hub() {
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
   const [isApproved, setIsApproved] = useState(false);
-  const { userValidation, result } = useUserValidation();
+  const [userValidation, userValidationResult] = useUserValidation();
+  const [hubSettingsRequest, hubSettingsRequestData] = useFetch();
 
   useEffect(() => {
     if (selectedOption == 1) {
       userValidation(userId);
-    } 
+    }
   }, [selectedOption]);
 
   useEffect(() => {
-    setIsApproved(result);
-  }, [result]);
+    setIsApproved(userValidationResult);
+  }, [userValidationResult]);
+
+
+  useEffect(()=>{
+    if(hubSettingsRequestData){
+      if(hubSettingsRequestData.status){
+        console.log(hubSettingsRequestData.msg)
+      }
+    }
+  },[hubSettingsRequestData])
+
+  function setHubSettings(type,data) {
+    hubSettingsRequest({
+      url: "set-hub-settings",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: userId,
+      },
+      body: JSON.stringify({type:type,data:data}),
+    });
+  }
 
   return (
     <>
@@ -139,25 +162,7 @@ export default function Hub() {
                           e.preventDefault();
                           let formData = new FormData(e.target);
                           formData = Object.fromEntries(formData.entries());
-                          try {
-                            const response = await fetch(
-                              "http://localhost:3000/set-hub-settings",
-                              {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                  authorization: userId,
-                                },
-                                body: JSON.stringify(formData),
-                              }
-                            );
-                            const data = await response.json();
-                            if (!response.ok && !data.status)
-                              throw new Error(data.msg);
-                            console.log(data.msg);
-                          } catch (err) {
-                            console.log(err);
-                          }
+                          setHubSettings("add-channel",formData);
                         }}
                       >
                         <label htmlFor="add-channel-input">Kanal Ekle</label>
@@ -172,11 +177,12 @@ export default function Hub() {
                           e.preventDefault();
                           let formData = new FormData(e.target);
                           formData = Object.fromEntries(formData.entries());
+                          setHubSettings("add-category",formData);
                         }}
                       >
                         <label htmlFor="addChannel-input"> Kategori Ekle</label>
                         <input type="text" id="addChannel-input" name="name" />
-                        <button type="submit"></button>
+                        <button type="submit">EKLE</button>
                       </form>
                     </div>
                   </div>

@@ -1,4 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+
+/**
+ * Custom hook for user validation.
+ * @returns {[function,boolean]}
+ */
 
 export default function useUserValidation() {
   const [result, setResult] = useState();
@@ -21,5 +26,5 @@ export default function useUserValidation() {
     }
   };
 
-  return { userValidation, result };
+  return [userValidation, result];
 }

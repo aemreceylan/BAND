@@ -1,11 +1,44 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Modal from "../UI/Modal/Modal";
 import "./LoginSignup.css";
 import { WSContext } from "../../Contexts/WSProvider";
+import useFetch from "../../hooks/useFetch";
 
 export default function LoginSignup() {
   const [isRegisterScreen, setIsRegisterScreen] = useState(false);
+  const formDataRef = useRef();
   const { setLogin, setSocket, io, setUserId } = useContext(WSContext);
+  const [signupRequest, signupRequestData] = useFetch();
+  const [loginRequest, loginRequestData] = useFetch();
+
+  useEffect(() => {
+    if (signupRequestData) {
+      if (signupRequestData.status) {
+        console.log(signupRequestData.msg);
+        setIsRegisterScreen(false);
+      } else {
+        console.log(signupRequestData.msg);
+      }
+    }
+  }, [signupRequestData]);
+
+  useEffect(() => {
+    if (loginRequestData) {
+      if (loginRequestData.status) {
+        setLogin(true);
+        setUserId(loginRequestData.id);
+        console.log(loginRequestData.msg);
+        setSocket(
+          io("localhost:3000", {
+            auth: formDataRef.current,
+          })
+        );
+      } else {
+        console.log(loginRequestData.msg);
+      }
+    }
+  }, [loginRequestData]);
+
   return (
     <>
       <Modal
@@ -19,46 +52,28 @@ export default function LoginSignup() {
             id="loginSignup-form"
             onSubmit={async (e) => {
               e.preventDefault();
-              let formData = new FormData(e.target);
-              formData = Object.fromEntries(formData.entries());
+              formDataRef.current = new FormData(e.target);
+              formDataRef.current = Object.fromEntries(
+                formDataRef.current.entries()
+              );
               if (isRegisterScreen) {
-                try {
-                  const response = await fetch("http://localhost:3000/signup", {
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    method: "POST",
-                    body: JSON.stringify(formData),
-                  });
-                  const data = await response.json();
-                  if (!response.ok && !data.status) throw new Error(data.msg);
-                  setIsRegisterScreen(false);
-                  console.log(data.msg);
-                } catch (err) {
-                  console.log(err);
-                }
+                signupRequest({
+                  url: "signup",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  method: "POST",
+                  body: JSON.stringify(formDataRef.current),
+                });
               } else {
-                try {
-                  const response = await fetch("http://localhost:3000/login", {
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    method: "POST",
-                    body: JSON.stringify(formData),
-                  });
-                  const data = await response.json();
-                  if (!response.ok && !data.status) throw new Error(data.msg);
-                  setLogin(true);
-                  setUserId(data.id);
-                  console.log(data.msg);
-                  setSocket(
-                    io("localhost:3000", {
-                      auth: formData,
-                    })
-                  );
-                } catch (err) {
-                  console.log(err);
-                }
+                loginRequest({
+                  url: "login",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  method: "POST",
+                  body: JSON.stringify(formDataRef.current),
+                });
               }
             }}
           >

@@ -46,17 +46,27 @@ const db = DB();
   }
 
   app.post("/set-hub-settings", userValidation, async (req, res) => {
-    try {
-      await db.createChannel(req.body);
-      res.status(201).json({ status: true, msg: "Channel created" });
+    switch (req.body.type) {
+      case "add-channel":
+        try {
+          await db.createChannel(req.body.data);
+          res.status(201).json({ status: true, msg: "Channel created" });
 
-      io.emit(
-        "channelList",
-        JSON.stringify(await Channel.find({}).select({ name: 1 }))
-      );
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({ status: false, msg: "Error" });
+          io.emit(
+            "channelList",
+            JSON.stringify(await Channel.find({}).select({ name: 1 }))
+          );
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ status: false, msg: "Error" });
+        }
+        break;
+      case "add-category":
+        try {
+          
+        } catch (err) {
+          console.log(err);
+        }
     }
   });
 
@@ -77,7 +87,7 @@ const db = DB();
 
   app.post("/signup", async (req, res) => {
     if (req.body.password != req.body.password_confirm)
-      res.status(400).end({ status: false, msg: "Passwords do not match" });
+      res.status(400).json({ status: false, msg: "Passwords do not match" });
     else {
       const { password_confirm, ..._userData } = req.body;
       try {
