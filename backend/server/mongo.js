@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import User from "./models/User.js";
 import Channel from "./models/Channel.js";
 import Category from "./models/Category.js";
+import Message from "./models/Message.js";
 
 async function init() {
   try {
@@ -79,6 +80,30 @@ function createCategory(data) {
   });
 }
 
+function newMessage(data) {
+  return new Pronise(async (resolve, reject) => {
+    const newMessage = new Message({
+      content: data.content,
+      sender: data.senderID,
+      channel: data.channelId,
+    });
+    try {
+      await newMessage.save();
+      resolve();
+    } catch (err) {
+      console.log(err);
+      reject();
+    }
+  });
+}
+
 export default function DB() {
-  return { init, createUser, checkUser, createChannel, createCategory };
+  return {
+    init,
+    createUser,
+    checkUser,
+    createChannel,
+    createCategory,
+    newMessage,
+  };
 }

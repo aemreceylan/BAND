@@ -9,7 +9,7 @@ export default function WSProvider({ children }) {
   const [sectionList, setSectionList] = useState();
   const [socket, setSocket] = useState();
   const [userId, setUserId] = useState();
-  const [selectedChannel, setSelectedChannel] = useState();
+  const [selectedChannel, setSelectedChannel] = useState({id:"",name:""});
 
   useEffect(() => {
     if (socket) {

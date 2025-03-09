@@ -7,9 +7,13 @@ export default function Channel({ data }) {
     <>
       <div
         className="hub-category-channelList-channel"
-        id={selectedChannel == data._id?"hub-category-channelList-channel-selected":""}
+        id={
+          selectedChannel.id == data._id
+            ? "hub-category-channelList-channel-selected"
+            : ""
+        }
         onClick={() => {
-          setSelectedChannel(data._id);
+          setSelectedChannel({ id: data._id, name: data.name });
         }}
       >
         <div className="hub-category-channelList-channel-title">

@@ -94,6 +94,10 @@ async function emitHubSections() {
     }
   }
 
+  app.post("/get-messages",(req,res)=>{
+    res.json({status:true,msg:""});
+  });
+
   app.post("/set-hub-settings", userValidation, async (req, res) => {
     switch (req.body.type) {
       case "add-channel":
