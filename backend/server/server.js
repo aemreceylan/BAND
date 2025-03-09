@@ -5,6 +5,7 @@ import DB from "./mongo.js";
 import cors from "cors";
 import User from "./models/User.js";
 import Channel from "./models/Channel.js";
+import Category from "./models/Category.js";
 
 const app = express();
 const port = 3000;
@@ -22,6 +23,54 @@ app.use(express.text());
 app.use(express.static(import.meta.dirname + "/public"));
 
 const db = DB();
+const userList = (() => {
+  const list = new Map();
+  async function getUsersFromDB() {
+    try {
+      const result = await User.find({});
+      for (let i of result) {
+        list.set(i.id, { ...i._doc, isOnline: false });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  function setUserOnline(user) {
+    list.set(user.id, { ...user._doc, isOnline: true });
+  }
+  function setUserOffline(id) {
+    list.set(id, {
+      ...list.get(id),
+      isOnline: false,
+    });
+  }
+  function emitList() {
+    io.emit("userList", Array.from(list.values()));
+  }
+
+  return {
+    getUsersFromDB,
+    setUserOnline,
+    setUserOffline,
+    emitList,
+  };
+})();
+userList.getUsersFromDB();
+
+async function emitHubSections() {
+  try {
+    io.emit(
+      "sectionList",
+      JSON.stringify(
+        await Category.find({})
+          .select({ name: 1, channels: 1 })
+          .populate({ path: "channels", select: "name" })
+      )
+    );
+  } catch (err) {
+    console.log(err);
+  }
+}
 
 (async () => {
   await db.init();
@@ -51,11 +100,7 @@ const db = DB();
         try {
           await db.createChannel(req.body.data);
           res.status(201).json({ status: true, msg: "Channel created" });
-
-          io.emit(
-            "channelList",
-            JSON.stringify(await Channel.find({}).select({ name: 1 }))
-          );
+          emitHubSections();
         } catch (err) {
           console.log(err);
           res.status(500).json({ status: false, msg: "Error" });
@@ -63,9 +108,12 @@ const db = DB();
         break;
       case "add-category":
         try {
-          
+          await db.createCategory(req.body.data);
+          res.status(201).json({ status: true, msg: "Category created" });
+          emitHubSections();
         } catch (err) {
           console.log(err);
+          res.status(500).json({ status: false, msg: "Error" });
         }
     }
   });
@@ -105,41 +153,6 @@ const db = DB();
     res.end();
   });
 
-  const userList = (() => {
-    const list = new Map();
-    async function getUsersFromDB() {
-      try {
-        const result = await User.find({});
-        for (let i of result) {
-          list.set(i.id, { ...i._doc, isOnline: false });
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    }
-    function setUserOnline(user) {
-      list.set(user.id, { ...user._doc, isOnline: true });
-    }
-    function setUserOffline(id) {
-      list.set(id, {
-        ...list.get(id),
-        isOnline: false,
-      });
-    }
-    function emitList() {
-      io.emit("userList", Array.from(list.values()));
-    }
-
-    return {
-      getUsersFromDB,
-      setUserOnline,
-      setUserOffline,
-      emitList,
-    };
-  })();
-
-  userList.getUsersFromDB();
-
   io.use(async (socket, next) => {
     try {
       const id = await db.checkUser(socket.handshake.auth);
@@ -169,6 +182,7 @@ const db = DB();
       "channelList",
       JSON.stringify(await Channel.find({}).select({ name: 1 }))
     );
+    emitHubSections();
     socket.on("disconnect", () => {
       console.log("Client disconnected: " + socket.id);
       try {

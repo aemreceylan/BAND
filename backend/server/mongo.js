@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import User from "./models/User.js";
 import Channel from "./models/Channel.js";
+import Category from "./models/Category.js";
 
 async function init() {
   try {
@@ -51,7 +52,10 @@ function createChannel(data) {
       name: data.name,
     });
     try {
-      await newChannel.save();
+      const channel = await newChannel.save();
+      await Category.findByIdAndUpdate(data.categoryId, {
+        $push: { channels: channel._id },
+      });
       resolve();
     } catch (err) {
       console.log(err);
@@ -60,7 +64,20 @@ function createChannel(data) {
   });
 }
 
-function createCategory() {}
+function createCategory(data) {
+  return new Promise(async (resolve, reject) => {
+    const newCategory = new Category({
+      name: data.name,
+    });
+    try {
+      await newCategory.save();
+      resolve();
+    } catch (err) {
+      console.log(err);
+      reject();
+    }
+  });
+}
 
 export default function DB() {
   return { init, createUser, checkUser, createChannel, createCategory };

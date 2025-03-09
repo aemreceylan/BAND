@@ -6,7 +6,7 @@ export const WSContext = createContext();
 export default function WSProvider({ children }) {
   const [login, setLogin] = useState(false);
   const [userList, setUserList] = useState();
-  const [channelList, setChannelList] = useState();
+  const [sectionList, setSectionList] = useState();
   const [socket, setSocket] = useState();
   const [userId, setUserId] = useState();
 
@@ -18,8 +18,8 @@ export default function WSProvider({ children }) {
       socket.on("userList", (data) => {
         setUserList(data);
       });
-      socket.on("channelList", (data) => {
-        setChannelList(JSON.parse(data));
+      socket.on("sectionList", (data) => {
+        setSectionList(JSON.parse(data));
       });
     }
   }, [socket]);
@@ -32,7 +32,7 @@ export default function WSProvider({ children }) {
     userList,
     setUserId,
     userId,
-    channelList
+    sectionList,
   };
 
   return (

@@ -1,20 +1,22 @@
 import Category from "./Category/Category";
 import Panel from "../Panel/Panel";
 import "./Hub.css";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Modal from "../UI/Modal/Modal";
 import { WSContext } from "../../Contexts/WSProvider";
 import useUserValidation from "../../hooks/useUserValidation.js";
 import useFetch from "../../hooks/useFetch.js";
 
 export default function Hub() {
-  const { userId, channelList } = useContext(WSContext);
+  const { userId, sectionList } = useContext(WSContext);
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
   const [isApproved, setIsApproved] = useState(false);
   const [userValidation, userValidationResult] = useUserValidation();
   const [hubSettingsRequest, hubSettingsRequestData] = useFetch();
+
+  console.log(sectionList);
 
   useEffect(() => {
     if (selectedOption == 1) {
@@ -26,16 +28,15 @@ export default function Hub() {
     setIsApproved(userValidationResult);
   }, [userValidationResult]);
 
-
-  useEffect(()=>{
-    if(hubSettingsRequestData){
-      if(hubSettingsRequestData.status){
-        console.log(hubSettingsRequestData.msg)
+  useEffect(() => {
+    if (hubSettingsRequestData) {
+      if (hubSettingsRequestData.status) {
+        console.log(hubSettingsRequestData.msg);
       }
     }
-  },[hubSettingsRequestData])
+  }, [hubSettingsRequestData]);
 
-  function setHubSettings(type,data) {
+  function setHubSettings(type, data) {
     hubSettingsRequest({
       url: "set-hub-settings",
       method: "POST",
@@ -43,7 +44,7 @@ export default function Hub() {
         "Content-Type": "application/json",
         authorization: userId,
       },
-      body: JSON.stringify({type:type,data:data}),
+      body: JSON.stringify({ type: type, data: data }),
     });
   }
 
@@ -107,7 +108,7 @@ export default function Hub() {
           </div>
         </Panel>
         <div id="hub-categories">
-          <Category channelList={channelList} />
+          <Category />
         </div>
       </div>
       {settingsPanelIsOpen && (
@@ -155,21 +156,6 @@ export default function Hub() {
               ) : selectedOption == 1 && isApproved ? (
                 <>
                   <div id="hubSettings-container-content-hubSettings">
-                    <div id="hubSettings-container-content-hubSettings-addChannel">
-                      <form
-                        id="addChannel-form"
-                        onSubmit={async (e) => {
-                          e.preventDefault();
-                          let formData = new FormData(e.target);
-                          formData = Object.fromEntries(formData.entries());
-                          setHubSettings("add-channel",formData);
-                        }}
-                      >
-                        <label htmlFor="add-channel-input">Kanal Ekle</label>
-                        <input type="text" id="add-channel-input" name="name" />
-                        <button type="submit">EKLE</button>
-                      </form>
-                    </div>
                     <div id="hubSettings-container-content-hubSettings-addCategory">
                       <form
                         id="addCategory-form"
@@ -177,11 +163,31 @@ export default function Hub() {
                           e.preventDefault();
                           let formData = new FormData(e.target);
                           formData = Object.fromEntries(formData.entries());
-                          setHubSettings("add-category",formData);
+                          setHubSettings("add-category", formData);
                         }}
                       >
                         <label htmlFor="addChannel-input"> Kategori Ekle</label>
                         <input type="text" id="addChannel-input" name="name" />
+                        <button type="submit">EKLE</button>
+                      </form>
+                    </div>
+                    <div id="hubSettings-container-content-hubSettings-addChannel">
+                      <form
+                        id="addChannel-form"
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          let formData = new FormData(e.target);
+                          formData = Object.fromEntries(formData.entries());
+                          setHubSettings("add-channel", formData);
+                        }}
+                      >
+                        <label htmlFor="add-channel-input">Kanal Ekle</label>
+                        <select name="categoryId">
+                          {sectionList?.map((element,index) => (
+                            <option key={index} value={element._id}>{element.name}</option>
+                          ))}
+                        </select>
+                        <input type="text" id="add-channel-input" name="name" />
                         <button type="submit">EKLE</button>
                       </form>
                     </div>
