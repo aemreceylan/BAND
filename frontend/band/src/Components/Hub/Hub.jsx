@@ -16,8 +16,6 @@ export default function Hub() {
   const [userValidation, userValidationResult] = useUserValidation();
   const [hubSettingsRequest, hubSettingsRequestData] = useFetch();
 
-  console.log(sectionList);
-
   useEffect(() => {
     if (selectedOption == 1) {
       userValidation(userId);
@@ -108,7 +106,8 @@ export default function Hub() {
           </div>
         </Panel>
         <div id="hub-categories">
-          <Category />
+          {sectionList?.map((element,index)=><Category key={index} data={element} />)}
+          
         </div>
       </div>
       {settingsPanelIsOpen && (

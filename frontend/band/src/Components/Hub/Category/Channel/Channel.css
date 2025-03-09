@@ -1,6 +1,7 @@
 .hub-category-channelList-channel{
     padding: 0.3rem 0.5rem;
     cursor: pointer;
+    color: var(--dark-font-medium-gray);
 }
 
 .hub-category-channelList-channel:hover{
@@ -11,6 +12,7 @@
     color: var(--dark-font-light-gray);
 }
 
-.hub-category-channelList-channel-title{
-    color: var(--dark-font-medium-gray);
+#hub-category-channelList-channel-selected{
+    font-weight: bolder ;
+    color: var(--dark-font-light-gray) !important;
 }

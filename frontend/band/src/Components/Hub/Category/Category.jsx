@@ -2,7 +2,7 @@ import Channel from "./Channel/Channel";
 import "./Category.css";
 import { useState } from "react";
 
-export default function Category({ channelList }) {
+export default function Category({ data }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -40,8 +40,8 @@ export default function Category({ channelList }) {
                   d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708z"
                 />
               </svg>
-            )}{" "}
-            {"Kategori"}
+            )}
+            {" "+data.name}
           </span>
         </div>
         <div
@@ -51,7 +51,7 @@ export default function Category({ channelList }) {
               : "hub-category-channelList-close"
           }
         >
-          {channelList?.map((element,index) => {
+          {data.channels?.map((element,index) => {
             return <Channel key={index} data={element} />;
           })}
         </div>
