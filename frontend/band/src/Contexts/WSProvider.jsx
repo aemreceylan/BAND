@@ -9,7 +9,7 @@ export default function WSProvider({ children }) {
   const [sectionList, setSectionList] = useState();
   const [socket, setSocket] = useState();
   const [userId, setUserId] = useState();
-  const [selectedChannel, setSelectedChannel] = useState({id:"",name:""});
+  const [selectedChannel, setSelectedChannel] = useState({ id: "", name: "" });
 
   useEffect(() => {
     if (socket) {
@@ -36,6 +36,7 @@ export default function WSProvider({ children }) {
     sectionList,
     selectedChannel,
     setSelectedChannel,
+    socket,
   };
 
   return (

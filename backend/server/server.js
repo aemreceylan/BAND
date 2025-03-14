@@ -22,58 +22,24 @@ app.use(express.json());
 app.use(express.text());
 app.use(express.static(import.meta.dirname + "/public"));
 
-const db = DB();
-const userList = (() => {
-  const list = new Map();
-  async function getUsersFromDB() {
+(async () => {
+  const db = DB();
+  await db.init();
+
+  async function emitHubSections() {
     try {
-      const result = await User.find({});
-      for (let i of result) {
-        list.set(i.id, { ...i._doc, isOnline: false });
-      }
+      io.emit(
+        "sectionList",
+        JSON.stringify(
+          await Category.find({})
+            .select({ name: 1, channels: 1 })
+            .populate({ path: "channels", select: "name" })
+        )
+      );
     } catch (err) {
       console.log(err);
     }
   }
-  function setUserOnline(user) {
-    list.set(user.id, { ...user._doc, isOnline: true });
-  }
-  function setUserOffline(id) {
-    list.set(id, {
-      ...list.get(id),
-      isOnline: false,
-    });
-  }
-  function emitList() {
-    io.emit("userList", Array.from(list.values()));
-  }
-
-  return {
-    getUsersFromDB,
-    setUserOnline,
-    setUserOffline,
-    emitList,
-  };
-})();
-userList.getUsersFromDB();
-
-async function emitHubSections() {
-  try {
-    io.emit(
-      "sectionList",
-      JSON.stringify(
-        await Category.find({})
-          .select({ name: 1, channels: 1 })
-          .populate({ path: "channels", select: "name" })
-      )
-    );
-  } catch (err) {
-    console.log(err);
-  }
-}
-
-(async () => {
-  await db.init();
 
   async function userValidation(req, res, next) {
     try {
@@ -94,8 +60,22 @@ async function emitHubSections() {
     }
   }
 
-  app.post("/get-messages",(req,res)=>{
-    res.json({status:true,msg:""});
+  app.post("/get-messages", async (req, res) => {
+    try {
+      if (req.body.messageAmount > 50)
+        throw new Error("A higher message amount was requested than allowed.");
+      const data = await db.getMessages(
+        req.body.channelId,
+        req.body.messageAmount,
+        req.body.skip
+      );
+      res
+        .status(200)
+        .json({ status: true, msg: "Messages were fetched", data: data });
+    } catch (err) {
+      console.log(err);
+      res.status(400).json({ status: false, msg: err.message });
+    }
   });
 
   app.post("/set-hub-settings", userValidation, async (req, res) => {
@@ -167,9 +147,45 @@ async function emitHubSections() {
     }
   });
 
+  const userList = (() => {
+    const list = new Map();
+    async function getUsersFromDB() {
+      try {
+        const result = await User.find({});
+        for (let i of result) {
+          list.set(i.id, { ...i._doc, isOnline: false });
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    function setUserOnline(user) {
+      list.set(user.id, { ...user._doc, isOnline: true });
+    }
+    function setUserOffline(id) {
+      list.set(id, {
+        ...list.get(id),
+        isOnline: false,
+      });
+    }
+    function emitList() {
+      io.emit("userList", Array.from(list.values()));
+    }
+
+    return {
+      getUsersFromDB,
+      setUserOnline,
+      setUserOffline,
+      emitList,
+    };
+  })();
+  userList.getUsersFromDB();
+
   io.on("connection", async (socket) => {
     console.log("Client connected: " + socket.id);
+
     socket.emit("welcome", "WS:Client accepted");
+
     try {
       const result = await User.findById(socket.userId).select({
         _id: 1,
@@ -182,11 +198,46 @@ async function emitHubSections() {
     } catch (err) {
       (err) => console.log(err);
     }
+
     socket.emit(
       "channelList",
       JSON.stringify(await Channel.find({}).select({ name: 1 }))
     );
+
     emitHubSections();
+
+    socket.on("joinChannel", async (data, callback) => {
+      try {
+        const response = await Channel.findOne({ _id: data }).select({
+          name: 1,
+        });
+        socket.join(response.name);
+        console.log("Client joined: " + response.name +" --> " + socket.id);
+        callback("Connected to " + response.name);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    socket.on("newMessageFromClient", async (data, callback) => {
+      try {
+        data = JSON.parse(data);
+        const response = await db.newMessage(data);
+        socket.to(data.channelName).emit(
+          "newMessageFromServer",
+          JSON.stringify({
+            text: data.text,
+            timestamp: response.timestamp,
+            sender: response.sender,
+          })
+        );
+        callback("Message sent");
+      } catch (err) {
+        console.log(err);
+        callback("Error");
+      }
+    });
+
     socket.on("disconnect", () => {
       console.log("Client disconnected: " + socket.id);
       try {

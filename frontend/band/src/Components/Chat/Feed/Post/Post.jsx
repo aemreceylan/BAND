@@ -2,7 +2,7 @@ import Message from "./Message/Message";
 
 import "./Post.css";
 
-export default function Post() {
+export default function Post({data}) {
   return (
     <>
       <div className="post">
@@ -10,12 +10,9 @@ export default function Post() {
           <img src="img/no-profile-photo.png" />
         </div>
         <div className="post-content">
-          <div className="post-nick">{"Nick"}</div>
+          <div className="post-nick">{data.sender.nick}</div>
           <div className="post-message-list">
-            <Message />
-            <Message />
-            <Message />
-            <Message />
+            <Message data={data}/>
           </div>
         </div>
       </div>

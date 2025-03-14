@@ -81,18 +81,43 @@ function createCategory(data) {
 }
 
 function newMessage(data) {
-  return new Pronise(async (resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const newMessage = new Message({
-      content: data.content,
-      sender: data.senderID,
+      text: data.text,
+      sender: data.userId,
       channel: data.channelId,
     });
     try {
-      await newMessage.save();
-      resolve();
+      const message = await (
+        await newMessage.save()
+      ).populate({
+        path: "sender",
+        select: "nick",
+      });
+      resolve({ timestamp: message.timestamp, sender: message.sender.nick });
     } catch (err) {
       console.log(err);
       reject();
+    }
+  });
+}
+
+function getMessages(channelId, limit, skip) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!channelId) throw new Error("channelId value is empty");
+      const result = await Message.find({ channel: channelId })
+        .select({
+          channel: 0,
+        })
+        .populate({ path: "sender", select: {nick:1,_id:0} })
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit);
+      resolve(result);
+    } catch (err) {
+      console.log(err);
+      reject("Err");
     }
   });
 }
@@ -105,5 +130,6 @@ export default function DB() {
     createChannel,
     createCategory,
     newMessage,
+    getMessages,
   };
 }

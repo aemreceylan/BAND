@@ -1,14 +1,10 @@
 import "./Message.css";
 
-export default function Message() {
+export default function Message({ data }) {
   return (
     <>
       <div className="message">
-        <span>
-          {
-            "Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat sit eum optio!Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat sit eum optio!Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat sit eum optio!Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat sit eum optio!Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat sit eum optio!Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat sit eum optio!Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat sit eum optio!Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat sit eum optio!"
-          }
-        </span>
+        <span>{data.text}</span>
       </div>
     </>
   );
