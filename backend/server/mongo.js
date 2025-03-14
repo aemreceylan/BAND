@@ -88,13 +88,14 @@ function newMessage(data) {
       channel: data.channelId,
     });
     try {
-      const message = await (
-        await newMessage.save()
-      ).populate({
+      const response = await newMessage.save();
+      const message = await response.populate({
         path: "sender",
-        select: "nick",
+        select: { nick: 1, _id: 0 },
       });
-      resolve({ timestamp: message.timestamp, sender: message.sender.nick });
+      const { channel, ...data } = message._doc;
+      console.log(data);
+      resolve(data);
     } catch (err) {
       console.log(err);
       reject();
@@ -110,11 +111,11 @@ function getMessages(channelId, limit, skip) {
         .select({
           channel: 0,
         })
-        .populate({ path: "sender", select: {nick:1,_id:0} })
-        .sort({ date: -1 })
+        .sort({timestamp:-1})
         .skip(skip)
-        .limit(limit);
-      resolve(result);
+        .limit(limit)
+        .populate({ path: "sender", select: { nick: 1, _id: 0 } });
+      resolve(result.reverse());
     } catch (err) {
       console.log(err);
       reject("Err");

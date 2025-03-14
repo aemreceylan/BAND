@@ -26,6 +26,7 @@ export default function ChatBox() {
                     console.log(data);
                   }
                 );
+                textareaRef.current.value = "";
               }
             }}
             placeholder={`#${selectedChannel.name} kanalına mesaj gönder...`}
@@ -46,6 +47,7 @@ export default function ChatBox() {
                     console.log(data);
                   }
                 );
+                textareaRef.current.value = "";
               }}
             >
               <svg

@@ -212,7 +212,7 @@ app.use(express.static(import.meta.dirname + "/public"));
           name: 1,
         });
         socket.join(response.name);
-        console.log("Client joined: " + response.name +" --> " + socket.id);
+        console.log("Client joined: " + response.name + " --> " + socket.id);
         callback("Connected to " + response.name);
       } catch (err) {
         console.log(err);
@@ -223,13 +223,9 @@ app.use(express.static(import.meta.dirname + "/public"));
       try {
         data = JSON.parse(data);
         const response = await db.newMessage(data);
-        socket.to(data.channelName).emit(
+        io.to(data.channelName).emit(
           "newMessageFromServer",
-          JSON.stringify({
-            text: data.text,
-            timestamp: response.timestamp,
-            sender: response.sender,
-          })
+          JSON.stringify(response)
         );
         callback("Message sent");
       } catch (err) {

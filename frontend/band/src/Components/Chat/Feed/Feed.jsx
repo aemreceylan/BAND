@@ -9,7 +9,6 @@ export default function Feed() {
   const { selectedChannel, socket } = useContext(WSContext);
   const [feedContentRequest, feedContentRequestData] = useFetch();
   const [content, setContent] = useState();
-
   useEffect(() => {
     if (selectedChannel.id) {
       feedContentRequest({
@@ -41,7 +40,8 @@ export default function Feed() {
 
   useEffect(() => {
     socket.on("newMessageFromServer", (data) => {
-      console.log(JSON.parse(data));
+      data = JSON.parse(data);
+      setContent((prev) => [ ...prev, data ]);
     });
   }, []);
 
