@@ -15,16 +15,22 @@ export default function Feed() {
   console.log(messages);
   useEffect(() => {
     if (selectedChannel.id) {
-      feedContentRequest({
-        url: "get-messages",
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          channelId: selectedChannel.id,
-          messageAmount: messageAmount,
-          skip: 0,
-        }),
-      });
+      if (!messages[selectedChannel.id]) {
+        setMessages((prev) => ({
+          ...prev,
+          [selectedChannel.id]: [],
+        }));
+        feedContentRequest({
+          url: "get-messages",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            channelId: selectedChannel.id,
+            messageAmount: messageAmount,
+            skip: 0,
+          }),
+        });
+      }
       socket.emit("joinChannel", selectedChannel.id, (data) => {
         console.log(data);
       });
@@ -32,11 +38,15 @@ export default function Feed() {
   }, [selectedChannel]);
 
   useEffect(() => {
-    if (feedContentRequestData && !feedContentLoading) {
+    if (feedContentRequestData) {
       if (feedContentRequestData.status) {
-        console.log(feedContentRequestData.msg);
-        // setContent(feedContentRequestData.data);
-        setContent((prev) => [...feedContentRequestData.data, ...prev]);
+        setMessages((prev) => ({
+          ...prev,
+          [feedContentRequestData.data[0].channel._id]: [
+            ...prev[feedContentRequestData.data[0].channel._id],
+            ...feedContentRequestData.data,
+          ],
+        }));
       } else {
         console.log(feedContentRequestData.msg);
       }
@@ -46,7 +56,11 @@ export default function Feed() {
   useEffect(() => {
     socket.on("newMessageFromServer", (data) => {
       data = JSON.parse(data);
-      setContent((prev) => [...prev, data]);
+      console.log(data);
+      setMessages((prev) => ({
+        ...prev,
+        [data.channel._id]: [...prev[data.channel._id], data],
+      }));
     });
   }, []);
 
@@ -62,13 +76,16 @@ export default function Feed() {
         id="feed"
         ref={feedRef}
         onScroll={(e) => {
-          if (e.target.scrollTop == 0 && content.length >= messageAmount) {
+          if (
+            e.target.scrollTop == 0 &&
+            messages[selectedChannel.id].length >= messageAmount
+          ) {
             console.log("sa");
           }
         }}
       >
         {feedContentLoading && <span className="loader"></span>}
-        {content?.map((element, index) => (
+        {messages[selectedChannel.id]?.map((element, index) => (
           <Post key={index} data={element} />
         ))}
       </div>

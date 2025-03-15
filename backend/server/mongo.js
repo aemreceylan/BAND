@@ -89,12 +89,13 @@ function newMessage(data) {
     });
     try {
       const response = await newMessage.save();
-      const message = await response.populate({
-        path: "sender",
-        select: { nick: 1, _id: 0 },
-      });
-      const { channel, ...data } = message._doc;
-      resolve(data);
+      const message = await (
+        await response.populate({
+          path: "sender",
+          select: { nick: 1, _id: 0 },
+        })
+      ).populate({ path: "channel", select: { name: 1 } });
+      resolve(message._doc);
     } catch (err) {
       console.log(err);
       reject();
@@ -102,18 +103,16 @@ function newMessage(data) {
   });
 }
 
-function getMessages({channelId, messageAmount:limit, skip}) {
+function getMessages({ channelId, messageAmount: limit, skip }) {
   return new Promise(async (resolve, reject) => {
     try {
       if (!channelId) throw new Error("channelId value is empty");
       const result = await Message.find({ channel: channelId })
-        .select({
-          channel: 0,
-        })
-        .sort({timestamp:-1})
+        .sort({ timestamp: -1 })
         .skip(skip)
         .limit(limit)
-        .populate({ path: "sender", select: { nick: 1, _id: 0 } });
+        .populate({ path: "sender", select: { nick: 1, _id: 0 } })
+        .populate({ path: "channel", select: { name: 1 } });
       resolve(result.reverse());
     } catch (err) {
       console.log(err);
