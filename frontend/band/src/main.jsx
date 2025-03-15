@@ -4,9 +4,9 @@ import App from "./App.jsx";
 import WSProvider from "./Contexts/WSProvider.jsx";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
+  // <StrictMode>
     <WSProvider>
       <App />
     </WSProvider>
-  </StrictMode>
+  // </StrictMode>
 );

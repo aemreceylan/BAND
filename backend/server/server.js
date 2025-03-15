@@ -64,11 +64,7 @@ app.use(express.static(import.meta.dirname + "/public"));
     try {
       if (req.body.messageAmount > 50)
         throw new Error("A higher message amount was requested than allowed.");
-      const data = await db.getMessages(
-        req.body.channelId,
-        req.body.messageAmount,
-        req.body.skip
-      );
+      const data = await db.getMessages(req.body);
       res
         .status(200)
         .json({ status: true, msg: "Messages were fetched", data: data });
@@ -171,7 +167,6 @@ app.use(express.static(import.meta.dirname + "/public"));
     function emitList() {
       io.emit("userList", Array.from(list.values()));
     }
-
     return {
       getUsersFromDB,
       setUserOnline,

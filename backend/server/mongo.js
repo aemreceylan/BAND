@@ -94,7 +94,6 @@ function newMessage(data) {
         select: { nick: 1, _id: 0 },
       });
       const { channel, ...data } = message._doc;
-      console.log(data);
       resolve(data);
     } catch (err) {
       console.log(err);
@@ -103,7 +102,7 @@ function newMessage(data) {
   });
 }
 
-function getMessages(channelId, limit, skip) {
+function getMessages({channelId, messageAmount:limit, skip}) {
   return new Promise(async (resolve, reject) => {
     try {
       if (!channelId) throw new Error("channelId value is empty");

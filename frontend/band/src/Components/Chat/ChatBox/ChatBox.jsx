@@ -26,6 +26,10 @@ export default function ChatBox() {
                     console.log(data);
                   }
                 );
+              }
+            }}
+            onKeyUp={(e) => {
+              if (e.key == "Enter" && !e.shiftKey) {
                 textareaRef.current.value = "";
               }
             }}

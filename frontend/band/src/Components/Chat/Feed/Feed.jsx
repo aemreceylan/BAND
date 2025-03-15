@@ -4,11 +4,15 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { WSContext } from "../../../Contexts/WSProvider";
 import useFetch from "../../../hooks/useFetch";
 
+const messageAmount = 25;
+
 export default function Feed() {
   const feedRef = useRef();
   const { selectedChannel, socket } = useContext(WSContext);
-  const [feedContentRequest, feedContentRequestData] = useFetch();
-  const [content, setContent] = useState();
+  const [feedContentRequest, feedContentRequestData, feedContentLoading] =
+    useFetch();
+  const [messages, setMessages] = useState({});
+  console.log(messages);
   useEffect(() => {
     if (selectedChannel.id) {
       feedContentRequest({
@@ -17,7 +21,7 @@ export default function Feed() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           channelId: selectedChannel.id,
-          messageAmount: 25,
+          messageAmount: messageAmount,
           skip: 0,
         }),
       });
@@ -28,10 +32,11 @@ export default function Feed() {
   }, [selectedChannel]);
 
   useEffect(() => {
-    if (feedContentRequestData) {
+    if (feedContentRequestData && !feedContentLoading) {
       if (feedContentRequestData.status) {
         console.log(feedContentRequestData.msg);
-        setContent(feedContentRequestData.data);
+        // setContent(feedContentRequestData.data);
+        setContent((prev) => [...feedContentRequestData.data, ...prev]);
       } else {
         console.log(feedContentRequestData.msg);
       }
@@ -41,7 +46,7 @@ export default function Feed() {
   useEffect(() => {
     socket.on("newMessageFromServer", (data) => {
       data = JSON.parse(data);
-      setContent((prev) => [ ...prev, data ]);
+      setContent((prev) => [...prev, data]);
     });
   }, []);
 
@@ -53,7 +58,16 @@ export default function Feed() {
 
   return (
     <>
-      <div id="feed" ref={feedRef}>
+      <div
+        id="feed"
+        ref={feedRef}
+        onScroll={(e) => {
+          if (e.target.scrollTop == 0 && content.length >= messageAmount) {
+            console.log("sa");
+          }
+        }}
+      >
+        {feedContentLoading && <span className="loader"></span>}
         {content?.map((element, index) => (
           <Post key={index} data={element} />
         ))}
