@@ -103,16 +103,20 @@ function newMessage(data) {
   });
 }
 
-function getMessages({ channelId, messageAmount: limit, skip }) {
+function getMessages({ channelId, messageAmount: limit, skip, firstMessage }) {
   return new Promise(async (resolve, reject) => {
     try {
       if (!channelId) throw new Error("channelId value is empty");
-      const result = await Message.find({ channel: channelId })
+
+      const findObject = { channel: channelId };
+      if (firstMessage) findObject.timestamp = { $lt: firstMessage.timestamp };
+      const result = await Message.find(findObject)
         .sort({ timestamp: -1 })
         .skip(skip)
         .limit(limit)
         .populate({ path: "sender", select: { nick: 1, _id: 0 } })
         .populate({ path: "channel", select: { name: 1 } });
+
       resolve(result.reverse());
     } catch (err) {
       console.log(err);

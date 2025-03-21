@@ -67,7 +67,12 @@ app.use(express.static(import.meta.dirname + "/public"));
       const data = await db.getMessages(req.body);
       res
         .status(200)
-        .json({ status: true, msg: "Messages were fetched", data: data });
+        .json({
+          status: true,
+          msg: "Messages were fetched",
+          data: data,
+          isMessagesEnd: data.length < req.body.messageAmount,
+        });
     } catch (err) {
       console.log(err);
       res.status(400).json({ status: false, msg: err.message });

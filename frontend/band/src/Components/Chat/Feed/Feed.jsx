@@ -4,15 +4,16 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { WSContext } from "../../../Contexts/WSProvider";
 import useFetch from "../../../hooks/useFetch";
 
-const messageAmount = 25;
-
 export default function Feed() {
   const feedRef = useRef();
+  const messageAmountRef = useRef(25);
+  const scrollData = useRef({});
   const { selectedChannel, socket } = useContext(WSContext);
   const [feedContentRequest, feedContentRequestData, feedContentLoading] =
     useFetch();
   const [messages, setMessages] = useState({});
-  console.log(messages);
+  const [isMessagesEnd, setIsMessagesEnd] = useState({});
+
   useEffect(() => {
     if (selectedChannel.id) {
       if (!messages[selectedChannel.id]) {
@@ -26,7 +27,7 @@ export default function Feed() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             channelId: selectedChannel.id,
-            messageAmount: messageAmount,
+            messageAmount: messageAmountRef.current,
             skip: 0,
           }),
         });
@@ -40,13 +41,24 @@ export default function Feed() {
   useEffect(() => {
     if (feedContentRequestData) {
       if (feedContentRequestData.status) {
-        setMessages((prev) => ({
-          ...prev,
-          [feedContentRequestData.data[0].channel._id]: [
-            ...prev[feedContentRequestData.data[0].channel._id],
-            ...feedContentRequestData.data,
-          ],
-        }));
+        if (feedContentRequestData.isMessagesEnd) {
+          setIsMessagesEnd((prev) => ({ ...prev, [selectedChannel.id]: true }));
+        }
+        if (feedContentRequestData.data.length > 0) {
+          scrollData.current[selectedChannel.id] = feedRef.current.scrollHeight;
+          setMessages((prev) => ({
+            ...prev,
+            [feedContentRequestData.data[0].channel._id]: [
+              ...feedContentRequestData.data,
+              ...prev[feedContentRequestData.data[0].channel._id],
+            ],
+          }));
+          setTimeout(() => {
+            feedRef.current.scrollTop =
+              feedRef.current.scrollHeight -
+              scrollData.current[selectedChannel.id];
+          }, 0);
+        }
       } else {
         console.log(feedContentRequestData.msg);
       }
@@ -56,19 +68,12 @@ export default function Feed() {
   useEffect(() => {
     socket.on("newMessageFromServer", (data) => {
       data = JSON.parse(data);
-      console.log(data);
       setMessages((prev) => ({
         ...prev,
         [data.channel._id]: [...prev[data.channel._id], data],
       }));
     });
   }, []);
-
-  setTimeout(() => {
-    if (feedRef.current) {
-      feedRef.current.scrollTop = feedRef.current.scrollHeight;
-    }
-  }, 0);
 
   return (
     <>
@@ -77,10 +82,24 @@ export default function Feed() {
         ref={feedRef}
         onScroll={(e) => {
           if (
+            messages[selectedChannel.id] &&
             e.target.scrollTop == 0 &&
-            messages[selectedChannel.id].length >= messageAmount
+            messages[selectedChannel.id].length >= messageAmountRef.current &&
+            !isMessagesEnd[selectedChannel.id]
           ) {
-            console.log("sa");
+            feedContentRequest({
+              url: "get-messages",
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                channelId: selectedChannel.id,
+                messageAmount: messageAmountRef.current,
+                skip: 0,
+                firstMessage: {
+                  timestamp: messages[selectedChannel.id][0].timestamp,
+                },
+              }),
+            });
           }
         }}
       >
