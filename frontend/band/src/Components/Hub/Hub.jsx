@@ -106,8 +106,9 @@ export default function Hub() {
           </div>
         </Panel>
         <div id="hub-categories">
-          {sectionList?.map((element,index)=><Category key={index} data={element} />)}
-          
+          {sectionList?.map((element, index) => (
+            <Category key={index} data={element} />
+          ))}
         </div>
       </div>
       {settingsPanelIsOpen && (
@@ -155,6 +156,7 @@ export default function Hub() {
               ) : selectedOption == 1 && isApproved ? (
                 <>
                   <div id="hubSettings-container-content-hubSettings">
+                    <div className="hubSettings-container-divider">Kategori Ayarları</div>
                     <div id="hubSettings-container-content-hubSettings-addCategory">
                       <form
                         id="addCategory-form"
@@ -170,6 +172,7 @@ export default function Hub() {
                         <button type="submit">EKLE</button>
                       </form>
                     </div>
+                    <div className="hubSettings-container-divider">Kanal Ayarları</div>
                     <div id="hubSettings-container-content-hubSettings-addChannel">
                       <form
                         id="addChannel-form"
@@ -182,8 +185,10 @@ export default function Hub() {
                       >
                         <label htmlFor="add-channel-input">Kanal Ekle</label>
                         <select name="categoryId">
-                          {sectionList?.map((element,index) => (
-                            <option key={index} value={element._id}>{element.name}</option>
+                          {sectionList?.map((element, index) => (
+                            <option key={index} value={element._id}>
+                              {element.name}
+                            </option>
                           ))}
                         </select>
                         <input type="text" id="add-channel-input" name="name" />

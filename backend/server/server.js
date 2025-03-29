@@ -6,6 +6,7 @@ import cors from "cors";
 import User from "./models/User.js";
 import Channel from "./models/Channel.js";
 import Category from "./models/Category.js";
+import argon2 from "argon2";
 
 const app = express();
 const port = 3000;

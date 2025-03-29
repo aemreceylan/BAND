@@ -81,9 +81,9 @@
   border: 0.1rem solid var(--dark-font-light-gray);
 }
 
-#hubSettings-container-option-buttons{
+#hubSettings-container-option-buttons {
   position: relative;
-  display:flex;
+  display: flex;
   justify-content: center;
   color: var(--dark-font-medium-gray);
   border-bottom: 0.1rem solid black;
@@ -91,7 +91,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.hubSettings-container-option-button{
+.hubSettings-container-option-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,7 +100,6 @@
   cursor: pointer;
   border-bottom: 0.1rem solid transparent;
   font-size: 1.1rem;
-
 }
 
 .hubSettings-container-option-button:hover {
@@ -114,6 +113,22 @@
   background-color: var(--dark-background-light-gray);
 }
 
-#hubSettings-container-content{
-  color:var(--dark-font-medium-gray)
+#hubSettings-container-content {
+  color: var(--dark-font-medium-gray);
+}
+
+.hubSettings-container-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1rem 0;
+  color: var(--dark-font-medium-gray);
+}
+
+.hubSettings-container-divider::before,
+.hubSettings-container-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--dark-font-medium-gray);
+  margin: 0 1rem;
 }
