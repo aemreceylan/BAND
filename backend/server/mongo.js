@@ -1,9 +1,9 @@
+import argon2 from "argon2";
 import mongoose from "mongoose";
 import User from "./models/User.js";
 import Channel from "./models/Channel.js";
 import Category from "./models/Category.js";
 import Message from "./models/Message.js";
-
 async function init() {
   try {
     await mongoose.connect("mongodb://localhost:27017/bandDB");
@@ -36,11 +36,11 @@ function checkUser(data) {
     try {
       const result = await User.findOne({
         nick: data.nick,
-        password: data.password,
       });
-      if (result == null) {
-        reject("User not found");
-      } else resolve(result.id);
+      if (result == null) reject("User not found");
+      else if (! await argon2.verify(result.password, data.password))
+        reject("Wrong password");
+      else resolve(result.id);
     } catch (err) {
       console.log(err);
     }

@@ -16,6 +16,7 @@
   "dependencies": {
     "argon2": "^0.41.1",
     "bufferutil": "^4.0.9",
+    "cookie-parser": "^1.4.7",
     "mongoose": "^8.10.1",
     "socket.io": "^4.8.1",
     "utf-8-validate": "^6.0.5"

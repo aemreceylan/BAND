@@ -1,4 +1,5 @@
 import express from "express";
+import argon2 from "argon2";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import DB from "./mongo.js";
@@ -6,7 +7,6 @@ import cors from "cors";
 import User from "./models/User.js";
 import Channel from "./models/Channel.js";
 import Category from "./models/Category.js";
-import argon2 from "argon2";
 
 const app = express();
 const port = 3000;
@@ -66,14 +66,12 @@ app.use(express.static(import.meta.dirname + "/public"));
       if (req.body.messageAmount > 50)
         throw new Error("A higher message amount was requested than allowed.");
       const data = await db.getMessages(req.body);
-      res
-        .status(200)
-        .json({
-          status: true,
-          msg: "Messages were fetched",
-          data: data,
-          isMessagesEnd: data.length < req.body.messageAmount,
-        });
+      res.status(200).json({
+        status: true,
+        msg: "Messages were fetched",
+        data: data,
+        isMessagesEnd: data.length < req.body.messageAmount,
+      });
     } catch (err) {
       console.log(err);
       res.status(400).json({ status: false, msg: err.message });
@@ -123,14 +121,18 @@ app.use(express.static(import.meta.dirname + "/public"));
     if (req.body.password != req.body.password_confirm)
       res.status(400).json({ status: false, msg: "Passwords do not match" });
     else {
-      const { password_confirm, ..._userData } = req.body;
       try {
-        const userData = await db.createUser(_userData);
+        req.body.password = await argon2.hash(req.body.password,{
+          hashLength: 50,
+          timeCost:4
+        });
+        const { password_confirm, ..._userData } = req.body;
+        await db.createUser(_userData);
         res.status(201).json({ status: true, msg: "Registration successful" });
       } catch (err) {
         res
           .status(500)
-          .json({ status: false, msg: "Registration failed = " + err });
+          .json({ status: false, msg: "Registration failed = "+ err });
       }
     }
   });
