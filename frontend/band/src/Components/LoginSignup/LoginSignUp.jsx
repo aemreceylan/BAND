@@ -30,7 +30,7 @@ export default function LoginSignup() {
         console.log(loginRequestData.msg);
         setSocket(
           io("localhost:3000", {
-            auth: formDataRef.current,
+            auth: {id:loginRequestData.id},
           })
         );
       } else {

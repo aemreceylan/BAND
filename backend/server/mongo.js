@@ -34,13 +34,15 @@ function createUser(data) {
 function checkUser(data) {
   return new Promise(async (resolve, reject) => {
     try {
-      const result = await User.findOne({
-        nick: data.nick,
-      });
+      const result = await User.findOne(data);
+      console.log(result);
       if (result == null) reject("User not found");
-      else if (! await argon2.verify(result.password, data.password))
+      else if (
+        data.password &&
+        !(await argon2.verify(result.password, data.password))
+      )
         reject("Wrong password");
-      else resolve(result.id);
+      else resolve(result);
     } catch (err) {
       console.log(err);
     }

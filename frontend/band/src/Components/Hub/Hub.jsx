@@ -172,6 +172,28 @@ export default function Hub() {
                         <button type="submit">EKLE</button>
                       </form>
                     </div>
+                    <div id="hubSettings-container-content-hubSettings-editCategory">
+                      <form
+                        id="addChannel-form"
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          let formData = new FormData(e.target);
+                          formData = Object.fromEntries(formData.entries());
+                          setHubSettings("edit-category", formData);
+                        }}
+                      >
+                        <label htmlFor="add-channel-input">Kategoriyi Düzenle</label>
+                        <select name="categoryId">
+                          {sectionList?.map((element, index) => (
+                            <option key={index} value={element._id}>
+                              {element.name}
+                            </option>
+                          ))}
+                        </select>
+                        <input type="text" id="add-channel-input" name="name" />
+                        <button type="submit">DÜZENLE</button>
+                      </form>
+                    </div>
                     <div className="hubSettings-container-divider">Kanal Ayarları</div>
                     <div id="hubSettings-container-content-hubSettings-addChannel">
                       <form
@@ -193,6 +215,28 @@ export default function Hub() {
                         </select>
                         <input type="text" id="add-channel-input" name="name" />
                         <button type="submit">EKLE</button>
+                      </form>
+                    </div>
+                    <div id="hubSettings-container-content-hubSettings-addChannel">
+                      <form
+                        id="addChannel-form"
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          let formData = new FormData(e.target);
+                          formData = Object.fromEntries(formData.entries());
+                          setHubSettings("edit-channel", formData);
+                        }}
+                      >
+                        <label htmlFor="add-channel-input">Kanal Düzenle</label>
+                        <select name="categoryId">
+                          {sectionList?.map((element, index) => (
+                            <option key={index} value={element._id}>
+                              {element.name}
+                            </option>
+                          ))}
+                        </select>
+                        <input type="text" id="add-channel-input" name="name" />
+                        <button type="submit">DÜZENLE</button>
                       </form>
                     </div>
                   </div>

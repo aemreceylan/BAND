@@ -1,5 +1,7 @@
 import express from "express";
 import argon2 from "argon2";
+import cookieParser from "cookie-parser";
+import session from "express-session";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import DB from "./mongo.js";
@@ -13,16 +15,34 @@ const port = 3000;
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
-    methods: "*",
+    origin: "http://localhost:5173",
+    methods: ["POST", "GET"],
+    credentials: true,
   },
 });
 
-app.use(cors({ origin: "*", methods: "*" }));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["POST", "GET"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.text());
 app.use(express.static(import.meta.dirname + "/public"));
-
+app.use(cookieParser());
+app.use(
+  session({
+    secret: "abc123",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+    },
+  })
+);
 (async () => {
   const db = DB();
   await db.init();
@@ -42,7 +62,7 @@ app.use(express.static(import.meta.dirname + "/public"));
     }
   }
 
-  async function userValidation(req, res, next) {
+  async function userAuthorization(req, res, next) {
     try {
       const result = await User.findById(req.headers.authorization).select({
         roles: 1,
@@ -78,7 +98,7 @@ app.use(express.static(import.meta.dirname + "/public"));
     }
   });
 
-  app.post("/set-hub-settings", userValidation, async (req, res) => {
+  app.post("/set-hub-settings", userAuthorization, async (req, res) => {
     switch (req.body.type) {
       case "add-channel":
         try {
@@ -99,10 +119,13 @@ app.use(express.static(import.meta.dirname + "/public"));
           console.log(err);
           res.status(500).json({ status: false, msg: "Error" });
         }
+        break;
+        case "edit-category":break;
+        case "edit-channel":break;
     }
   });
 
-  app.get("/user-validation", userValidation, (req, res) => {
+  app.get("/user-validation", userAuthorization, (req, res) => {
     return res
       .status(202)
       .json({ status: true, msg: "User authorization approved" });
@@ -110,7 +133,10 @@ app.use(express.static(import.meta.dirname + "/public"));
 
   app.post("/login", async (req, res) => {
     try {
-      const id = await db.checkUser(req.body);
+      const id = (await db.checkUser({ nick: req.body.nick })).id;
+      req.session.isAuth = true;
+      req.session.userId = id;
+      req.session.cookie.maxAge = 86400000 * 2;
       res.status(202).json({ status: true, msg: "Login successful", id: id });
     } catch (err) {
       res.status(400).json({ status: false, msg: "Login failed = " + err });
@@ -122,9 +148,9 @@ app.use(express.static(import.meta.dirname + "/public"));
       res.status(400).json({ status: false, msg: "Passwords do not match" });
     else {
       try {
-        req.body.password = await argon2.hash(req.body.password,{
+        req.body.password = await argon2.hash(req.body.password, {
           hashLength: 50,
-          timeCost:4
+          timeCost: 4,
         });
         const { password_confirm, ..._userData } = req.body;
         await db.createUser(_userData);
@@ -132,23 +158,27 @@ app.use(express.static(import.meta.dirname + "/public"));
       } catch (err) {
         res
           .status(500)
-          .json({ status: false, msg: "Registration failed = "+ err });
+          .json({ status: false, msg: "Registration failed = " + err });
       }
+    }
+  });
+
+  app.get("/session-check", (req, res) => {
+    if (req.session.isAuth)
+      res
+        .status(200)
+        .json({
+          status: true,
+          message: "Session check approved",
+          userId: req.session.userId,
+        });
+    else {
+      res.status(401).json({ status: false, message: "Session check failed" });
     }
   });
 
   app.use("/", (req, res) => {
     res.end();
-  });
-
-  io.use(async (socket, next) => {
-    try {
-      const id = await db.checkUser(socket.handshake.auth);
-      socket.userId = id;
-      next();
-    } catch (err) {
-      next(new Error(err));
-    }
   });
 
   const userList = (() => {
@@ -183,6 +213,17 @@ app.use(express.static(import.meta.dirname + "/public"));
     };
   })();
   userList.getUsersFromDB();
+
+  io.use(async (socket, next) => {
+    try {
+      const id = (await db.checkUser({_id:socket.handshake.auth.id})).id;
+      socket.userId = id;
+      next();
+    } catch (err) {
+      next(new Error(err));
+      console.log("Socket error : " + err);
+    }
+  });
 
   io.on("connection", async (socket) => {
     console.log("Client connected: " + socket.id);

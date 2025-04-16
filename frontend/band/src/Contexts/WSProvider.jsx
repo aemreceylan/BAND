@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import useFetch from "../hooks/useFetch";
 
 export const WSContext = createContext();
 
@@ -10,6 +11,28 @@ export default function WSProvider({ children }) {
   const [socket, setSocket] = useState();
   const [userId, setUserId] = useState();
   const [selectedChannel, setSelectedChannel] = useState({ id: "", name: "" });
+  const [isAuthRequest, isAuthData] = useFetch();
+
+  useEffect(() => {
+    isAuthRequest({ url: "session-check" });
+    if(localStorage.getItem("selectedChannel"))
+      setSelectedChannel(JSON.parse(localStorage.getItem("selectedChannel")))
+  }, []);
+
+  useEffect(() => {
+    if (isAuthData) {
+      console.log(isAuthData.message);
+      if (isAuthData.status) {
+        setLogin(true);
+        setUserId(isAuthData.userId);
+        setSocket(
+          io("localhost:3000", {
+            auth: {id:isAuthData.userId},
+          })
+        );
+      }
+    }
+  }, [isAuthData]);
 
   useEffect(() => {
     if (socket) {

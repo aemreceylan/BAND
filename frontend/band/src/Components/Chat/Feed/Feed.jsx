@@ -35,6 +35,7 @@ export default function Feed() {
       socket.emit("joinChannel", selectedChannel.id, (data) => {
         console.log(data);
       });
+      localStorage.setItem("selectedChannel",JSON.stringify(selectedChannel));
     }
   }, [selectedChannel]);
 
