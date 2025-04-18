@@ -35,7 +35,6 @@ function checkUser(data) {
   return new Promise(async (resolve, reject) => {
     try {
       const result = await User.findOne(data);
-      console.log(result);
       if (result == null) reject("User not found");
       else if (
         data.password &&
@@ -127,6 +126,34 @@ function getMessages({ channelId, messageAmount: limit, skip, firstMessage }) {
   });
 }
 
+function editCategory(data) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await Category.findByIdAndUpdate(data.categoryId, {
+        $set: { name: data.name },
+      });
+      resolve();
+    } catch (err) {
+      console.log(err);
+      reject();
+    }
+  });
+}
+
+function editChannel(data) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await Channel.findByIdAndUpdate(data.channelId, {
+        $set: { name: data.name },
+      });
+      resolve();
+    } catch (err) {
+      console.log(err);
+      reject();
+    }
+  });
+}
+
 export default function DB() {
   return {
     init,
@@ -136,5 +163,7 @@ export default function DB() {
     createCategory,
     newMessage,
     getMessages,
+    editCategory,
+    editChannel,
   };
 }

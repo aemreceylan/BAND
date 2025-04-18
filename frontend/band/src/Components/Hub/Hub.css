@@ -132,3 +132,35 @@
   border-bottom: 1px solid var(--dark-font-medium-gray);
   margin: 0 1rem;
 }
+
+.hubSettings-settingContainer {
+  padding: 0 2em;
+}
+
+.hubSettings-settingContainer input {
+  background-color: var(--dark-background-dark-gray);
+  border: none;
+  outline: none;
+  font-family: "Lato";
+  color: var(--dark-font-light-gray);
+  border-radius: 0.5rem;
+  font-size: 1.1rem;
+  border: 1px solid black;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.hubSettings-settingContainer input::placeholder {
+  color: var(--dark-font-medium-gray);
+}
+
+.hubSettings-settingContainer button{
+  font-family: "Lato";
+  background-color: var(--dark-background-dark-gray);
+  border: none;
+  color: var(--dark-font-light-gray);
+  border-radius: 0.5rem;
+  border: 1px solid black;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}

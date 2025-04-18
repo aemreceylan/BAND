@@ -120,8 +120,26 @@ app.use(
           res.status(500).json({ status: false, msg: "Error" });
         }
         break;
-        case "edit-category":break;
-        case "edit-channel":break;
+        case "edit-category":
+          try {
+            await db.editCategory(req.body.data);
+            res.status(200).json({ status: true, msg: "Category edited" });
+            emitHubSections();
+          } catch (err) {
+            console.log(err);
+            res.status(500).json({ status: false, msg: "Error" });
+          }
+          break;
+        case "edit-channel":
+        try {
+          await db.editChannel(req.body.data);
+          res.status(200).json({ status: true, msg: "Channel edited" });
+          emitHubSections();
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ status: false, msg: "Error" });
+        }  
+        break;
     }
   });
 

@@ -15,6 +15,9 @@ export default function Hub() {
   const [isApproved, setIsApproved] = useState(false);
   const [userValidation, userValidationResult] = useUserValidation();
   const [hubSettingsRequest, hubSettingsRequestData] = useFetch();
+  const [selectedCategoryOption, setSelectedCategoryOption] = useState(
+    sectionList[0]._id
+  );
 
   useEffect(() => {
     if (selectedOption == 1) {
@@ -156,8 +159,13 @@ export default function Hub() {
               ) : selectedOption == 1 && isApproved ? (
                 <>
                   <div id="hubSettings-container-content-hubSettings">
-                    <div className="hubSettings-container-divider">Kategori Ayarları</div>
-                    <div id="hubSettings-container-content-hubSettings-addCategory">
+                    <div className="hubSettings-container-divider">
+                      Kategori Ayarları
+                    </div>
+                    <div
+                      id="hubSettings-container-content-hubSettings-addCategory"
+                      className="hubSettings-settingContainer"
+                    >
                       <form
                         id="addCategory-form"
                         onSubmit={(e) => {
@@ -167,14 +175,20 @@ export default function Hub() {
                           setHubSettings("add-category", formData);
                         }}
                       >
-                        <label htmlFor="addChannel-input"> Kategori Ekle</label>
-                        <input type="text" id="addChannel-input" name="name" />
+                        <label htmlFor="addCategory-input">
+                          {" "}
+                          Kategori Ekle
+                        </label>
+                        <input type="text" id="addCategory-input" name="name" />
                         <button type="submit">EKLE</button>
                       </form>
                     </div>
-                    <div id="hubSettings-container-content-hubSettings-editCategory">
+                    <div
+                      id="hubSettings-container-content-hubSettings-editCategory"
+                      className="hubSettings-settingContainer"
+                    >
                       <form
-                        id="addChannel-form"
+                        id="editCategory-form"
                         onSubmit={async (e) => {
                           e.preventDefault();
                           let formData = new FormData(e.target);
@@ -182,7 +196,9 @@ export default function Hub() {
                           setHubSettings("edit-category", formData);
                         }}
                       >
-                        <label htmlFor="add-channel-input">Kategoriyi Düzenle</label>
+                        <label htmlFor="editCategory-input">
+                          Kategoriyi Düzenle
+                        </label>
                         <select name="categoryId">
                           {sectionList?.map((element, index) => (
                             <option key={index} value={element._id}>
@@ -190,12 +206,21 @@ export default function Hub() {
                             </option>
                           ))}
                         </select>
-                        <input type="text" id="add-channel-input" name="name" />
+                        <input
+                          type="text"
+                          id="editCategory-input"
+                          name="name"
+                        />
                         <button type="submit">DÜZENLE</button>
                       </form>
                     </div>
-                    <div className="hubSettings-container-divider">Kanal Ayarları</div>
-                    <div id="hubSettings-container-content-hubSettings-addChannel">
+                    <div className="hubSettings-container-divider">
+                      Kanal Ayarları
+                    </div>
+                    <div
+                      id="hubSettings-container-content-hubSettings-addChannel"
+                      className="hubSettings-settingContainer"
+                    >
                       <form
                         id="addChannel-form"
                         onSubmit={async (e) => {
@@ -205,7 +230,7 @@ export default function Hub() {
                           setHubSettings("add-channel", formData);
                         }}
                       >
-                        <label htmlFor="add-channel-input">Kanal Ekle</label>
+                        <label htmlFor="addChannel-input">Kanal Ekle</label>
                         <select name="categoryId">
                           {sectionList?.map((element, index) => (
                             <option key={index} value={element._id}>
@@ -217,9 +242,12 @@ export default function Hub() {
                         <button type="submit">EKLE</button>
                       </form>
                     </div>
-                    <div id="hubSettings-container-content-hubSettings-addChannel">
+                    <div
+                      id="hubSettings-container-content-hubSettings-addChannel"
+                      className="hubSettings-settingContainer"
+                    >
                       <form
-                        id="addChannel-form"
+                        id="editChannel-form"
                         onSubmit={async (e) => {
                           e.preventDefault();
                           let formData = new FormData(e.target);
@@ -227,15 +255,30 @@ export default function Hub() {
                           setHubSettings("edit-channel", formData);
                         }}
                       >
-                        <label htmlFor="add-channel-input">Kanal Düzenle</label>
-                        <select name="categoryId">
+                        <label htmlFor="editChannel-input">Kanal Düzenle</label>
+                        <select
+                          onInput={(e) => {
+                            setSelectedCategoryOption(e.target.value);
+                          }}
+                        >
                           {sectionList?.map((element, index) => (
                             <option key={index} value={element._id}>
                               {element.name}
                             </option>
                           ))}
                         </select>
-                        <input type="text" id="add-channel-input" name="name" />
+                        <select name="channelId">
+                          {sectionList?.map(
+                            (element) =>
+                              element._id == selectedCategoryOption &&
+                              element.channels.map((element, index) => (
+                                <option key={index} value={element._id}>
+                                  {element.name}
+                                </option>
+                              ))
+                          )}
+                        </select>
+                        <input type="text" id="editChannel-input" name="name" />
                         <button type="submit">DÜZENLE</button>
                       </form>
                     </div>
