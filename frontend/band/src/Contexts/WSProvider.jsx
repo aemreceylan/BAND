@@ -12,12 +12,25 @@ export default function WSProvider({ children }) {
   const [userId, setUserId] = useState();
   const [selectedChannel, setSelectedChannel] = useState({ id: "", name: "" });
   const [isAuthRequest, isAuthData] = useFetch();
+  const [csrfRequest, csrfRequestData] = useFetch();
+  const [csrfToken, setCsrfToken] = useState();
 
   useEffect(() => {
     isAuthRequest({ url: "session-check" });
-    if(localStorage.getItem("selectedChannel"))
-      setSelectedChannel(JSON.parse(localStorage.getItem("selectedChannel")))
+    if (localStorage.getItem("selectedChannel"))
+      setSelectedChannel(JSON.parse(localStorage.getItem("selectedChannel")));
+    csrfRequest({
+      url: "/get-csrf",
+    });
   }, []);
+
+  useEffect(() => {
+    if (csrfRequestData) {
+      if (csrfRequestData.status) {
+        setCsrfToken(csrfRequestData.csrfToken);
+      }
+    }
+  }, [csrfRequestData]);
 
   useEffect(() => {
     if (isAuthData) {
@@ -27,7 +40,7 @@ export default function WSProvider({ children }) {
         setUserId(isAuthData.userId);
         setSocket(
           io("localhost:3000", {
-            auth: {id:isAuthData.userId},
+            auth: { id: isAuthData.userId },
           })
         );
       }
@@ -60,6 +73,7 @@ export default function WSProvider({ children }) {
     selectedChannel,
     setSelectedChannel,
     socket,
+    csrfToken,
   };
 
   return (

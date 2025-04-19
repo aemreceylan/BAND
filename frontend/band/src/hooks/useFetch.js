@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { WSContext } from "../Contexts/WSProvider";
 /**
  * Custom hook for making fetch requests.
  * @returns {[function,object,boolean]}
  */
 export default function useFetch() {
+  const { csrfToken } = useContext(WSContext);
   const [data, setData] = useState();
   const [loading, setLoading] = useState(false);
 
@@ -15,6 +17,8 @@ export default function useFetch() {
     };
     if (body) data.body = body;
     if (headers) data.headers = headers;
+    if (method == "POST")
+      data.headers = { ...data.headers, "CSRF-Token": csrfToken };
     try {
       const response = await fetch("http://localhost:3000/" + url, data);
       const _data = await response.json();

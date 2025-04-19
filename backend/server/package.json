@@ -14,9 +14,13 @@
     "nodemon": "^3.1.9"
   },
   "dependencies": {
+    "@dr.pogodin/csurf": "^1.14.1",
     "argon2": "^0.41.1",
     "bufferutil": "^4.0.9",
+    "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
     "express-session": "^1.18.1",
     "mongoose": "^8.10.1",
     "socket.io": "^4.8.1",

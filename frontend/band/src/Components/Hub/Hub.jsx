@@ -15,9 +15,12 @@ export default function Hub() {
   const [isApproved, setIsApproved] = useState(false);
   const [userValidation, userValidationResult] = useUserValidation();
   const [hubSettingsRequest, hubSettingsRequestData] = useFetch();
-  const [selectedCategoryOption, setSelectedCategoryOption] = useState(
-    sectionList[0]._id
-  );
+  const [selectedCategoryOption, setSelectedCategoryOption] = useState();
+
+  useEffect(() => {
+    if (!selectedCategoryOption && sectionList && sectionList.length > 0)
+      setSelectedCategoryOption(sectionList[0]._id);
+  }, [sectionList]);
 
   useEffect(() => {
     if (selectedOption == 1) {

@@ -4,8 +4,11 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 import { Server } from "socket.io";
 import { createServer } from "http";
-import DB from "./mongo.js";
 import cors from "cors";
+import MongoStore from "connect-mongo";
+import csrf from "@dr.pogodin/csurf";
+
+import DB from "./mongo.js";
 import User from "./models/User.js";
 import Channel from "./models/Channel.js";
 import Category from "./models/Category.js";
@@ -40,9 +43,15 @@ app.use(
     cookie: {
       secure: false,
       httpOnly: true,
+      sameSite: "Strict",
     },
+    store: MongoStore.create({
+      mongoUrl: "mongodb://localhost:27017/bandDB",
+    }),
   })
 );
+app.use(csrf());
+
 (async () => {
   const db = DB();
   await db.init();
@@ -80,6 +89,26 @@ app.use(
       return res.status(500).json({ status: false, msg: "Error" });
     }
   }
+
+  app.get("/get-csrf", (req, res) => {
+    res
+      .status(200)
+      .json({
+        status: true,
+        msg: "csrf token created",
+        csrfToken: req.csrfToken(),
+      });
+  });
+
+  app.get("/log-out", async (req, res) => {
+    try {
+      await req.session.destroy();
+      res.status(200).json({ status: true, msg: "Session ended" });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ status: false, msg: "Error" });
+    }
+  });
 
   app.post("/get-messages", async (req, res) => {
     try {
@@ -120,17 +149,17 @@ app.use(
           res.status(500).json({ status: false, msg: "Error" });
         }
         break;
-        case "edit-category":
-          try {
-            await db.editCategory(req.body.data);
-            res.status(200).json({ status: true, msg: "Category edited" });
-            emitHubSections();
-          } catch (err) {
-            console.log(err);
-            res.status(500).json({ status: false, msg: "Error" });
-          }
-          break;
-        case "edit-channel":
+      case "edit-category":
+        try {
+          await db.editCategory(req.body.data);
+          res.status(200).json({ status: true, msg: "Category edited" });
+          emitHubSections();
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ status: false, msg: "Error" });
+        }
+        break;
+      case "edit-channel":
         try {
           await db.editChannel(req.body.data);
           res.status(200).json({ status: true, msg: "Channel edited" });
@@ -138,7 +167,7 @@ app.use(
         } catch (err) {
           console.log(err);
           res.status(500).json({ status: false, msg: "Error" });
-        }  
+        }
         break;
     }
   });
@@ -183,13 +212,11 @@ app.use(
 
   app.get("/session-check", (req, res) => {
     if (req.session.isAuth)
-      res
-        .status(200)
-        .json({
-          status: true,
-          message: "Session check approved",
-          userId: req.session.userId,
-        });
+      res.status(200).json({
+        status: true,
+        message: "Session check approved",
+        userId: req.session.userId,
+      });
     else {
       res.status(401).json({ status: false, message: "Session check failed" });
     }
@@ -234,7 +261,7 @@ app.use(
 
   io.use(async (socket, next) => {
     try {
-      const id = (await db.checkUser({_id:socket.handshake.auth.id})).id;
+      const id = (await db.checkUser({ _id: socket.handshake.auth.id })).id;
       socket.userId = id;
       next();
     } catch (err) {
