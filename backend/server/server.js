@@ -7,6 +7,7 @@ import { createServer } from "http";
 import cors from "cors";
 import MongoStore from "connect-mongo";
 import csrf from "@dr.pogodin/csurf";
+import jwt from "jsonwebtoken";
 
 import DB from "./mongo.js";
 import User from "./models/User.js";
@@ -91,13 +92,11 @@ app.use(csrf());
   }
 
   app.get("/get-csrf", (req, res) => {
-    res
-      .status(200)
-      .json({
-        status: true,
-        msg: "csrf token created",
-        csrfToken: req.csrfToken(),
-      });
+    res.status(200).json({
+      status: true,
+      msg: "csrf token created",
+      csrfToken: req.csrfToken(),
+    });
   });
 
   app.get("/log-out", async (req, res) => {

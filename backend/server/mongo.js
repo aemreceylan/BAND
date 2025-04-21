@@ -4,6 +4,7 @@ import User from "./models/User.js";
 import Channel from "./models/Channel.js";
 import Category from "./models/Category.js";
 import Message from "./models/Message.js";
+
 async function init() {
   try {
     await mongoose.connect("mongodb://localhost:27017/bandDB");

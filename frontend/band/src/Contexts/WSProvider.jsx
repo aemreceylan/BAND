@@ -4,6 +4,8 @@ import useFetch from "../hooks/useFetch";
 
 export const WSContext = createContext();
 
+export const _csrfToken = [];
+
 export default function WSProvider({ children }) {
   const [login, setLogin] = useState(false);
   const [userList, setUserList] = useState();
@@ -11,16 +13,16 @@ export default function WSProvider({ children }) {
   const [socket, setSocket] = useState();
   const [userId, setUserId] = useState();
   const [selectedChannel, setSelectedChannel] = useState({ id: "", name: "" });
-  const [isAuthRequest, isAuthData] = useFetch();
-  const [csrfRequest, csrfRequestData] = useFetch();
   const [csrfToken, setCsrfToken] = useState();
+  const [csrfRequest, csrfRequestData] = useFetch();
+  const [isAuthRequest, isAuthData] = useFetch();
 
   useEffect(() => {
     isAuthRequest({ url: "session-check" });
     if (localStorage.getItem("selectedChannel"))
       setSelectedChannel(JSON.parse(localStorage.getItem("selectedChannel")));
     csrfRequest({
-      url: "/get-csrf",
+      url: "get-csrf",
     });
   }, []);
 
@@ -28,6 +30,7 @@ export default function WSProvider({ children }) {
     if (csrfRequestData) {
       if (csrfRequestData.status) {
         setCsrfToken(csrfRequestData.csrfToken);
+        _csrfToken.push(csrfRequestData.csrfToken);
       }
     }
   }, [csrfRequestData]);
