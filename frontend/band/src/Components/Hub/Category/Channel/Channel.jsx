@@ -2,7 +2,8 @@ import { useContext } from "react";
 import "./Channel.css";
 import { WSContext } from "../../../../Contexts/WSProvider";
 export default function Channel({ data }) {
-  const { selectedChannel, setSelectedChannel } = useContext(WSContext);
+  const { selectedChannel, setSelectedChannel, setSelectedRTC } =
+    useContext(WSContext);
   return (
     <>
       <div
@@ -13,11 +14,22 @@ export default function Channel({ data }) {
             : ""
         }
         onClick={() => {
-          setSelectedChannel({ id: data._id, name: data.name });
+          if (data.type == 0)
+            setSelectedChannel({
+              id: data._id,
+              name: data.name,
+            });
+          else
+            setSelectedRTC({
+              id: data._id,
+              name: data.name,
+            });
         }}
       >
         <div className="hub-category-channelList-channel-title">
-          <span># {data.name}</span>
+          <span>
+            {data.type == 0 ? "#" : "+"} {data.name}
+          </span>
         </div>
       </div>
     </>

@@ -8,11 +8,11 @@ import { useState } from "react";
 export default function useUserValidation() {
   const [result, setResult] = useState();
 
-  const userValidation = async (id) => {
+  const userValidation = async (authToken) => {
     try {
       const response = await fetch("http://localhost:3000/user-validation", {
         headers: {
-          authorization: id,
+          authorization: authToken,
         },
         method: "GET",
       });

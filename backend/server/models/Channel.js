@@ -10,20 +10,21 @@ const channelSchema = new mongoose.Schema({
     default: Date.now,
   },
   type: {
-    type: String,
-    default:"chat"
+    type: Number,
+    required: true,
+    default: 0, // 0:chat 1:rtc
   },
-  authorized_roles:{
+  authorized_roles: {
     type: [String],
-    default:[0]
+    default: [0],
   },
-  authorized_users:{
-    type:[mongoose.Schema.Types.ObjectId],
-    ref:"User",
-    default:[]
-  }
+  authorized_users: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "User",
+    default: [],
+  },
 });
 
-const Channel = mongoose.model("Channel",channelSchema);
+const Channel = mongoose.model("Channel", channelSchema);
 
 export default Channel;

@@ -6,12 +6,12 @@ import "./HubList.css";
 import { WSContext } from "../../Contexts/WSProvider";
 
 export default function HubList() {
-  const { setLogin } = useContext(WSContext);
+  const { setLogout } = useContext(WSContext);
   const [logOutRequest, logOutRequestData] = useFetch();
   useEffect(() => {
     if (logOutRequestData) {
       if (logOutRequestData.status) {
-        setLogin(false);
+        setLogout(true);
       }
       console.log(logOutRequestData.msg);
     }

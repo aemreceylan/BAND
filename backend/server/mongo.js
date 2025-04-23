@@ -37,24 +37,23 @@ function checkUser(data) {
     try {
       const result = await User.findOne(data);
       if (result == null) reject("User not found");
-      else if (
-        data.password &&
-        !(await argon2.verify(result.password, data.password))
-      )
-        reject("Wrong password");
-      else resolve(result);
+      resolve(result);
     } catch (err) {
       console.log(err);
+      reject("Error");
     }
   });
 }
 
 function createChannel(data) {
   return new Promise(async (resolve, reject) => {
-    const newChannel = new Channel({
-      name: data.name,
-    });
     try {
+      if (!(Number(data.type) == 0 || Number(data.type) == 1))
+        throw new Error();
+      const newChannel = new Channel({
+        name: data.name,
+        type: data.type,
+      });
       const channel = await newChannel.save();
       await Category.findByIdAndUpdate(data.categoryId, {
         $push: { channels: channel._id },
@@ -90,6 +89,7 @@ function newMessage(data) {
       channel: data.channelId,
     });
     try {
+      if ((await Channel.findById(data.channelId)).type != 0) throw new Error();
       const response = await newMessage.save();
       const message = await (
         await response.populate({

@@ -11,9 +11,11 @@ export default function WSProvider({ children }) {
   const [userList, setUserList] = useState();
   const [sectionList, setSectionList] = useState();
   const [socket, setSocket] = useState();
-  const [userId, setUserId] = useState();
+  const [authToken, setAuthToken] = useState();
   const [selectedChannel, setSelectedChannel] = useState({ id: "", name: "" });
   const [csrfToken, setCsrfToken] = useState();
+  const [logout, setLogout] = useState(false);
+  const [selectedRTC, setSelectedRTC] = useState({ id: "", name: "" });
   const [csrfRequest, csrfRequestData] = useFetch();
   const [isAuthRequest, isAuthData] = useFetch();
 
@@ -27,10 +29,15 @@ export default function WSProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    if (selectedRTC.id) {
+    }
+  }, [selectedRTC]);
+
+  useEffect(() => {
     if (csrfRequestData) {
       if (csrfRequestData.status) {
         setCsrfToken(csrfRequestData.csrfToken);
-        _csrfToken.push(csrfRequestData.csrfToken);
+        _csrfToken[0] = csrfRequestData.csrfToken;
       }
     }
   }, [csrfRequestData]);
@@ -40,10 +47,10 @@ export default function WSProvider({ children }) {
       console.log(isAuthData.message);
       if (isAuthData.status) {
         setLogin(true);
-        setUserId(isAuthData.userId);
+        setAuthToken(isAuthData.authToken);
         setSocket(
           io("localhost:3000", {
-            auth: { id: isAuthData.userId },
+            auth: { authToken: isAuthData.authToken },
           })
         );
       }
@@ -64,19 +71,33 @@ export default function WSProvider({ children }) {
     }
   }, [socket]);
 
+  useEffect(() => {
+    if (logout) {
+      setLogin(false);
+      csrfRequest({
+        url: "get-csrf",
+      });
+      socket.disconnect();
+      setLogout(false);
+    }
+  }, [logout]);
+
   const contextValue = {
     login,
     setLogin,
     setSocket,
     io,
     userList,
-    setUserId,
-    userId,
+    setAuthToken,
+    authToken,
     sectionList,
     selectedChannel,
     setSelectedChannel,
     socket,
-    csrfToken,
+    setLogout,
+    logout,
+    selectedRTC,
+    setSelectedRTC,
   };
 
   return (

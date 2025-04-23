@@ -8,7 +8,7 @@ import useUserValidation from "../../hooks/useUserValidation.js";
 import useFetch from "../../hooks/useFetch.js";
 
 export default function Hub() {
-  const { userId, sectionList } = useContext(WSContext);
+  const { authToken, sectionList } = useContext(WSContext);
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
@@ -24,7 +24,7 @@ export default function Hub() {
 
   useEffect(() => {
     if (selectedOption == 1) {
-      userValidation(userId);
+      userValidation(authToken);
     }
   }, [selectedOption]);
 
@@ -46,7 +46,7 @@ export default function Hub() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        authorization: userId,
+        authorization: authToken,
       },
       body: JSON.stringify({ type: type, data: data }),
     });
@@ -242,6 +242,10 @@ export default function Hub() {
                           ))}
                         </select>
                         <input type="text" id="add-channel-input" name="name" />
+                        <select name="type">
+                          <option value="0">Chat</option>
+                          <option value="1">RTC</option>
+                        </select>
                         <button type="submit">EKLE</button>
                       </form>
                     </div>

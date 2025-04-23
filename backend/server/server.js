@@ -64,7 +64,7 @@ app.use(csrf());
         JSON.stringify(
           await Category.find({})
             .select({ name: 1, channels: 1 })
-            .populate({ path: "channels", select: "name" })
+            .populate({ path: "channels", select: ["name","type"] })
         )
       );
     } catch (err) {
@@ -72,9 +72,17 @@ app.use(csrf());
     }
   }
 
+  function passwordVerification(hash, plain) {
+    return new Promise(async (resolve, reject) => {
+      if (!(await argon2.verify(hash, plain))) reject("Wrong password");
+      else resolve();
+    });
+  }
+
   async function userAuthorization(req, res, next) {
     try {
-      const result = await User.findById(req.headers.authorization).select({
+      const id = jwt.verify(req.headers.authorization, "abc123").id;
+      const result = await User.findById(id).select({
         roles: 1,
       });
       if (result == null) {
@@ -179,11 +187,15 @@ app.use(csrf());
 
   app.post("/login", async (req, res) => {
     try {
-      const id = (await db.checkUser({ nick: req.body.nick })).id;
+      const result = await db.checkUser({ nick: req.body.nick });
+      await passwordVerification(result.password, req.body.password);
+      const authToken = jwt.sign({ id: result.id }, "abc123");
       req.session.isAuth = true;
-      req.session.userId = id;
+      req.session.authToken = authToken;
       req.session.cookie.maxAge = 86400000 * 2;
-      res.status(202).json({ status: true, msg: "Login successful", id: id });
+      res
+        .status(202)
+        .json({ status: true, msg: "Login successful", authToken: authToken });
     } catch (err) {
       res.status(400).json({ status: false, msg: "Login failed = " + err });
     }
@@ -214,7 +226,7 @@ app.use(csrf());
       res.status(200).json({
         status: true,
         message: "Session check approved",
-        userId: req.session.userId,
+        authToken: req.session.authToken,
       });
     else {
       res.status(401).json({ status: false, message: "Session check failed" });
@@ -260,7 +272,8 @@ app.use(csrf());
 
   io.use(async (socket, next) => {
     try {
-      const id = (await db.checkUser({ _id: socket.handshake.auth.id })).id;
+      const _id = jwt.verify(socket.handshake.auth.authToken, "abc123").id;
+      const id = (await db.checkUser({ _id: _id })).id;
       socket.userId = id;
       next();
     } catch (err) {
@@ -310,6 +323,8 @@ app.use(csrf());
     socket.on("newMessageFromClient", async (data, callback) => {
       try {
         data = JSON.parse(data);
+        data.userId = jwt.verify(data.authToken, "abc123").id;
+        delete data.authToken;
         const response = await db.newMessage(data);
         io.to(data.channelName).emit(
           "newMessageFromServer",

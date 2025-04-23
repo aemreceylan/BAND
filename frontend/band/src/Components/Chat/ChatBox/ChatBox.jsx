@@ -3,7 +3,7 @@ import "./ChatBox.css";
 import { WSContext } from "../../../Contexts/WSProvider";
 
 export default function ChatBox() {
-  const { selectedChannel, socket, userId } = useContext(WSContext);
+  const { selectedChannel, socket, authToken } = useContext(WSContext);
   const textareaRef = useRef();
   return (
     <>
@@ -17,7 +17,7 @@ export default function ChatBox() {
                 socket.emit(
                   "newMessageFromClient",
                   JSON.stringify({
-                    userId: userId,
+                    authToken: authToken,
                     text: textareaRef.current.value,
                     channelId: selectedChannel.id,
                     channelName: selectedChannel.name,
@@ -42,7 +42,7 @@ export default function ChatBox() {
                 socket.emit(
                   "newMessageFromClient",
                   JSON.stringify({
-                    userId: userId,
+                    authToken: authToken,
                     text: textareaRef.current.value,
                     channelId: selectedChannel.id,
                     channelName: selectedChannel.name,

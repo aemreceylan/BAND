@@ -35,7 +35,7 @@ export default function Feed() {
       socket.emit("joinChannel", selectedChannel.id, (data) => {
         console.log(data);
       });
-      localStorage.setItem("selectedChannel",JSON.stringify(selectedChannel));
+      localStorage.setItem("selectedChannel", JSON.stringify(selectedChannel));
     }
   }, [selectedChannel]);
 
@@ -67,14 +67,16 @@ export default function Feed() {
   }, [feedContentRequestData]);
 
   useEffect(() => {
-    socket.on("newMessageFromServer", (data) => {
-      data = JSON.parse(data);
-      setMessages((prev) => ({
-        ...prev,
-        [data.channel._id]: [...prev[data.channel._id], data],
-      }));
-    });
-  }, []);
+    if (socket) {
+      socket.on("newMessageFromServer", (data) => {
+        data = JSON.parse(data);
+        setMessages((prev) => ({
+          ...prev,
+          [data.channel._id]: [...prev[data.channel._id], data],
+        }));
+      });
+    }
+  }, [socket]);
 
   return (
     <>
