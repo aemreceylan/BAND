@@ -15,7 +15,14 @@ export default function WSProvider({ children }) {
   const [selectedChannel, setSelectedChannel] = useState({ id: "", name: "" });
   const [csrfToken, setCsrfToken] = useState();
   const [logout, setLogout] = useState(false);
-  const [selectedRTC, setSelectedRTC] = useState({ id: "", name: "" });
+  const [selectedRTC, setSelectedRTC] = useState({
+    id: "",
+    name: "",
+  });
+  const [activeRTC, setActiveRTC] = useState({
+    id: "",
+    name: "",
+  });
   const [csrfRequest, csrfRequestData] = useFetch();
   const [isAuthRequest, isAuthData] = useFetch();
 
@@ -30,8 +37,31 @@ export default function WSProvider({ children }) {
 
   useEffect(() => {
     if (selectedRTC.id) {
+      if (selectedRTC.isConnected == true) {
+        socket.emit("leaveChannel", activeRTC.id, (data) => {
+          console.log(data.msg);
+        });
+        socket.emit("joinChannel", selectedRTC.id, (data) => {
+          console.log(data);
+        });
+        setActiveRTC({ id: selectedRTC.id, name: selectedRTC.name });
+      } else if (selectedRTC.isConnected == false && selectedRTC.id) {
+        socket.emit("leaveChannel", selectedRTC.id, (data) => {
+          console.log(data.msg);
+          if (data.status) {
+            setSelectedRTC({
+              id: "",
+              name: "",
+            });
+            setActiveRTC({
+              id: "",
+              name: "",
+            });
+          }
+        });
+      }
     }
-  }, [selectedRTC]);
+  }, [selectedRTC.isConnected]);
 
   useEffect(() => {
     if (csrfRequestData) {
@@ -98,6 +128,7 @@ export default function WSProvider({ children }) {
     logout,
     selectedRTC,
     setSelectedRTC,
+    activeRTC,
   };
 
   return (

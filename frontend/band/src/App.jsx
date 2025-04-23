@@ -15,7 +15,7 @@ export default function App() {
     document.addEventListener("contextmenu", (e) => e.preventDefault());
   }, []);
 
-  const { login, selectedRTC } = useContext(WSContext);
+  const { login, selectedRTC, setSelectedRTC } = useContext(WSContext);
 
   return (
     <>
@@ -31,12 +31,65 @@ export default function App() {
       ) : (
         <LoginSignup />
       )}
-      {selectedRTC && (
+      {selectedRTC.id && (
         <Modal
           backdropStyle={{ display: "none" }}
-          style={{ left: 0, bottom: 0 }}
+          style={{
+            left: "1rem",
+            bottom: "1rem",
+            top: "initial",
+            transform: "initial",
+          }}
         >
-          <div id="RTC-panel">mofdlkmdfdfıop</div>
+          <div id="RTC-panel">
+            <div id="RTC-panel-content">
+              {selectedRTC.isConnected ? (
+                <div
+                  id="close"
+                  onClick={() => {
+                    setSelectedRTC((prev) => ({
+                      ...prev,
+                      isConnected: false,
+                    }));
+                  }}
+                >
+                  <span>x</span>
+                </div>
+              ) : (
+                <div id="RTC-panel-connecting-screen">
+                  <div id="RTC-panel-connecting-screen-info">
+                    <span>
+                      {selectedRTC.name} kanalına bağlanmak istiyor musun?
+                    </span>
+                  </div>
+                  <div id="RTC-panel-connecting-screen-buttons">
+                    <div
+                      id="RTC-panel-connecting-screen-buttons-button-connect"
+                      onClick={() => {
+                        setSelectedRTC((prev) => ({
+                          ...prev,
+                          isConnected: true,
+                        }));
+                      }}
+                    >
+                      <span>Evet</span>
+                    </div>
+                    <div
+                      id="RTC-panel-connecting-screen-buttons-button-dtconnect"
+                      onClick={() => {
+                        setSelectedRTC({
+                          id: "",
+                          name: "",
+                        });
+                      }}
+                    >
+                      <span>Hayır</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </Modal>
       )}
     </>

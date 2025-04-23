@@ -16,3 +16,8 @@
     font-weight: bolder ;
     color: var(--dark-font-light-gray) !important;
 }
+
+#hub-category-channelList-channel-active{
+    font-weight: bolder ;
+    color: var(--dark-font-link) !important;
+}

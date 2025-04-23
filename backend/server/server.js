@@ -64,7 +64,7 @@ app.use(csrf());
         JSON.stringify(
           await Category.find({})
             .select({ name: 1, channels: 1 })
-            .populate({ path: "channels", select: ["name","type"] })
+            .populate({ path: "channels", select: ["name", "type"] })
         )
       );
     } catch (err) {
@@ -317,6 +317,27 @@ app.use(csrf());
         callback("Connected to " + response.name);
       } catch (err) {
         console.log(err);
+      }
+    });
+
+    socket.on("leaveChannel", async (data, callback) => {
+      try {
+        const response = await Channel.findOne({ _id: data }).select({
+          name: 1,
+        });
+        if (!socket.rooms.has(response.name)) {
+          callback({
+            msg: "User is not already in the room: " + response.name,
+            status: false,
+          });
+          return;
+        }
+        socket.leave(response.name);
+        console.log("Client left: " + response.name + " --> " + socket.id);
+        callback({ msg: "User left from " + response.name, status: true });
+      } catch (err) {
+        console.log(err);
+        callback({ msg: "Error", status: false });
       }
     });
 
