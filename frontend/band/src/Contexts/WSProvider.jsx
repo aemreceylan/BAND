@@ -45,7 +45,7 @@ export default function WSProvider({ children }) {
           console.log(data);
         });
         setActiveRTC({ id: selectedRTC.id, name: selectedRTC.name });
-      } else if (selectedRTC.isConnected == false && selectedRTC.id) {
+      } else if (selectedRTC.isConnected == false) {
         socket.emit("leaveChannel", selectedRTC.id, (data) => {
           console.log(data.msg);
           if (data.status) {

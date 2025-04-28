@@ -7,8 +7,29 @@ import { WSContext } from "../../Contexts/WSProvider";
 import useUserValidation from "../../hooks/useUserValidation.js";
 import useFetch from "../../hooks/useFetch.js";
 
+function RtcModal({ children }) {
+  return (
+    <>
+      <Modal
+        backdropStyle={{ display: "none" }}
+        style={{
+          left: "1rem",
+          bottom: "1rem",
+          top: "initial",
+          transform: "initial",
+        }}
+      >
+        <div id="RTC-panel">
+          <div id="RTC-panel-content">{children}</div>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
 export default function Hub() {
-  const { authToken, sectionList } = useContext(WSContext);
+  const { authToken, sectionList, selectedRTC, setSelectedRTC, activeRTC } =
+    useContext(WSContext);
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
@@ -297,6 +318,54 @@ export default function Hub() {
             </div>
           </div>
         </Modal>
+      )}
+      {!(!selectedRTC.isConnected && selectedRTC.id) && activeRTC.id && (
+        <RtcModal>
+          <div
+            id="close"
+            onClick={() => {
+              setSelectedRTC((prev) => ({
+                ...prev,
+                isConnected: false,
+              }));
+            }}
+          >
+            <span>x</span>
+          </div>
+        </RtcModal>
+      )}
+      {!selectedRTC.isConnected && selectedRTC.id && (
+        <RtcModal>
+          <div id="RTC-panel-connecting-screen">
+            <div id="RTC-panel-connecting-screen-info">
+              <span>{selectedRTC.name} kanalına bağlanmak istiyor musun?</span>
+            </div>
+            <div id="RTC-panel-connecting-screen-buttons">
+              <div
+                id="RTC-panel-connecting-screen-buttons-button-connect"
+                onClick={() => {
+                  setSelectedRTC((prev) => ({
+                    ...prev,
+                    isConnected: true,
+                  }));
+                }}
+              >
+                <span>Evet</span>
+              </div>
+              <div
+                id="RTC-panel-connecting-screen-buttons-button-dtconnect"
+                onClick={() => {
+                  setSelectedRTC({
+                    id: "",
+                    name: "",
+                  });
+                }}
+              >
+                <span>Hayır</span>
+              </div>
+            </div>
+          </div>
+        </RtcModal>
       )}
     </>
   );
