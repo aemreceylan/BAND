@@ -8,6 +8,7 @@ export default function Channel({ data }) {
     selectedRTC,
     setSelectedRTC,
     activeRTC,
+    setActiveRTC,
   } = useContext(WSContext);
   return (
     <>
@@ -23,6 +24,8 @@ export default function Channel({ data }) {
         }
         onClick={() => {
           if (data.type == 0) {
+            if (activeRTC.screen)
+              setActiveRTC((prev) => ({ ...prev, screen: false }));
             if (selectedChannel.id != data._id)
               setSelectedChannel({
                 id: data._id,

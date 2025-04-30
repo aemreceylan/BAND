@@ -8,7 +8,7 @@ export default function Feed() {
   const feedRef = useRef();
   const messageAmountRef = useRef(25);
   const scrollData = useRef({});
-  const { selectedChannel, socket } = useContext(WSContext);
+  const { selectedChannel, socket, activeRTC } = useContext(WSContext);
   const [feedContentRequest, feedContentRequestData, feedContentLoading] =
     useFetch();
   const [messages, setMessages] = useState({});
@@ -106,10 +106,12 @@ export default function Feed() {
           }
         }}
       >
-        {feedContentLoading && <span className="loader"></span>}
-        {messages[selectedChannel.id]?.map((element, index) => (
-          <Post key={index} data={element} />
-        ))}
+        {!activeRTC.screen && feedContentLoading && <span className="loader"></span>}
+        {activeRTC.screen
+          ? ("")
+          : messages[selectedChannel.id]?.map((element, index) => (
+              <Post key={index} data={element} />
+            ))}
       </div>
     </>
   );

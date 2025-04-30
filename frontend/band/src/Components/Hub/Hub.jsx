@@ -1,7 +1,7 @@
 import Category from "./Category/Category";
 import Panel from "../Panel/Panel";
 import "./Hub.css";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Modal from "../UI/Modal/Modal";
 import { WSContext } from "../../Contexts/WSProvider";
 import useUserValidation from "../../hooks/useUserValidation.js";
@@ -28,8 +28,19 @@ function RtcModal({ children }) {
 }
 
 export default function Hub() {
-  const { authToken, sectionList, selectedRTC, setSelectedRTC, activeRTC } =
-    useContext(WSContext);
+  const {
+    authToken,
+    sectionList,
+    selectedRTC,
+    setSelectedRTC,
+    activeRTC,
+    setActiveRTC,
+    setSelectedChannel,
+    rtcMediaSettings,
+    setRtcMediaSettings,
+    setStreams,
+    streams,
+  } = useContext(WSContext);
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
@@ -37,11 +48,76 @@ export default function Hub() {
   const [userValidation, userValidationResult] = useUserValidation();
   const [hubSettingsRequest, hubSettingsRequestData] = useFetch();
   const [selectedCategoryOption, setSelectedCategoryOption] = useState();
+  const [rtcDevices, setRtcDevices] = useState();
+  const camVideoRef = useRef();
+  const micAudioRef = useRef();
 
   useEffect(() => {
     if (!selectedCategoryOption && sectionList && sectionList.length > 0)
       setSelectedCategoryOption(sectionList[0]._id);
   }, [sectionList]);
+
+  useEffect(() => {
+    if (settingsPanelIsOpen && selectedOption == 0) {
+      (async () => {
+        try {
+          const camVideoTestStream = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: "default" },
+          });
+          setStreams((prev) => ({ ...prev, camVideoTest: camVideoTestStream }));
+          const micAudioTestStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              deviceId: "default",
+            },
+          });
+          setStreams((prev) => ({ ...prev, micAudioTest: micAudioTestStream }));
+          setRtcDevices(await navigator.mediaDevices.enumerateDevices());
+        } catch (err) {
+          console.log(err);
+        }
+      })();
+    } else if (!settingsPanelIsOpen) {
+      if (streams.camVideoTest) {
+        streams.camVideoTest.getTracks().forEach((element) => element.stop());
+        delete streams.camVideoTest;
+        if (camVideoRef.current) camVideoRef.current.srcObject = "";
+      }
+    }
+  }, [settingsPanelIsOpen, selectedOption]);
+
+  useEffect(() => {
+    if (settingsPanelIsOpen && selectedOption == 0) {
+      (async () => {
+        try {
+          const camVideoTestStream = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: rtcMediaSettings.cam.id },
+          });
+          setStreams((prev) => ({ ...prev, camVideoTest: camVideoTestStream }));
+          const micAudioTestStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              deviceId: rtcMediaSettings.mic.id,
+            },
+          });
+          setStreams((prev) => ({ ...prev, micAudioTest: micAudioTestStream }));
+        } catch (err) {
+          console.log(err);
+        }
+      })();
+    }
+  }, [rtcMediaSettings]);
+
+  useEffect(() => {
+    if (settingsPanelIsOpen && selectedOption == 0 && camVideoRef.current) {
+      if (streams.camVideoTest)
+        camVideoRef.current.srcObject = streams.camVideoTest;
+      if (streams.micAudioTest)
+        micAudioRef.current.srcObject = streams.micAudioTest;
+    }
+  }, [streams]);
 
   useEffect(() => {
     if (selectedOption == 1) {
@@ -177,7 +253,74 @@ export default function Hub() {
             </div>
             <div id="hubSettings-container-content">
               {selectedOption == 0 ? (
-                "Kişisel Ayarlar"
+                <div id="hubSettings-container-content-personalSettings">
+                  <div className="hubSettings-container-divider">
+                    RTC Ayarları
+                  </div>
+                  <div
+                    id="hubSettings-container-content-personalSettings-audioSettings"
+                    className="hubSettings-settingContainer"
+                  >
+                    <form
+                      id="audioSettings-form"
+                      onInput={(e) => {
+                        setRtcMediaSettings((prev) => ({
+                          ...prev,
+                          [e.target.name]: {
+                            ...prev[e.target.name].status,
+                            id: e.target.value,
+                          },
+                        }));
+                      }}
+                    >
+                      <select name="mic">
+                        {rtcDevices?.map((element, i) => {
+                          if (element.kind == "audioinput")
+                            return (
+                              <option key={i} value={element.deviceId}>
+                                {element.label}
+                              </option>
+                            );
+                        })}
+                      </select>
+                      <select name="listen">
+                        {rtcDevices?.map((element, i) => {
+                          if (element.kind == "audiooutput")
+                            return (
+                              <option key={i} value={element.deviceId}>
+                                {element.label}
+                              </option>
+                            );
+                        })}
+                      </select>
+                      <select name="cam">
+                        {rtcDevices?.map((element, i) => {
+                          if (element.kind == "videoinput")
+                            return (
+                              <option key={i} value={element.deviceId}>
+                                {element.label}
+                              </option>
+                            );
+                        })}
+                      </select>
+                    </form>
+                  </div>
+                  <div id="hubSettings-container-content-personalSettings-cam">
+                    <video
+                      autoPlay
+                      playsInline
+                      ref={camVideoRef}
+                      id="hubSettings-container-content-personalSettings-cam-test"
+                    ></video>
+                  </div>
+                  <div id="hubSettings-container-content-personalSettings-mic">
+                    <audio
+                      ref={micAudioRef}
+                      id="hubSettings-container-content-personalSettings-mic-test"
+                      autoPlay
+                    ></audio>
+                  </div>
+                </div>
               ) : selectedOption == 1 && !isApproved ? (
                 "Burayı görmeye yetkiniz yok"
               ) : selectedOption == 1 && isApproved ? (
@@ -321,16 +464,120 @@ export default function Hub() {
       )}
       {!(!selectedRTC.isConnected && selectedRTC.id) && activeRTC.id && (
         <RtcModal>
-          <div
-            id="close"
-            onClick={() => {
-              setSelectedRTC((prev) => ({
-                ...prev,
-                isConnected: false,
-              }));
-            }}
-          >
-            <span>x</span>
+          <div id="RTC-panel-content-main">
+            <div id="RTC-panel-content-main-info">
+              <span>{activeRTC.name}</span>
+            </div>
+            <div id="RTC-panel-content-main-buttons">
+              <div id="RTC-panel-content-main-buttons-up">
+                <div
+                  id="RTC-panel-content-main-buttons-up-screen"
+                  onClick={() => {
+                    setActiveRTC((prev) => ({ ...prev, screen: true }));
+                    setSelectedChannel({ id: "", name: "" });
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="1em"
+                    height="1em"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M3 3.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m1.5 0a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m1 .5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1" />
+                    <path d="M.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h15a.5.5 0 0 0 .5-.5v-13a.5.5 0 0 0-.5-.5zM1 5V2h14v3zm0 1h14v8H1z" />
+                  </svg>
+                </div>
+              </div>
+              <div id="RTC-panel-content-main-buttons-down">
+                <div id="RTC-panel-content-main-buttons-down-mic">
+                  {rtcMediaSettings.mic.status ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="1em"
+                      height="1em"
+                      fill="currentColor"
+                      viewBox="0 0 16 16"
+                    >
+                      <path d="M5 3a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0z" />
+                      <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="1em"
+                      height="1em"
+                      fill="currentColor"
+                      viewBox="0 0 16 16"
+                    >
+                      <path d="M13 8c0 .564-.094 1.107-.266 1.613l-.814-.814A4 4 0 0 0 12 8V7a.5.5 0 0 1 1 0zm-5 4c.818 0 1.578-.245 2.212-.667l.718.719a5 5 0 0 1-2.43.923V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 1 0v1a4 4 0 0 0 4 4m3-9v4.879L5.158 2.037A3.001 3.001 0 0 1 11 3" />
+                      <path d="M9.486 10.607 5 6.12V8a3 3 0 0 0 4.486 2.607m-7.84-9.253 12 12 .708-.708-12-12z" />
+                    </svg>
+                  )}
+                </div>
+                <div id="RTC-panel-content-main-buttons-down-listen">
+                  {rtcMediaSettings.listen.status ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      height="1em"
+                      viewBox="0 -960 960 960"
+                      width="1em"
+                      fill="currentColor"
+                    >
+                      <path d="M480-40v-80h280v-40H600v-320h160v-40q0-116-82-198t-198-82q-116 0-198 82t-82 198v40h160v320H200q-33 0-56.5-23.5T120-240v-280q0-74 28.5-139.5T226-774q49-49 114.5-77.5T480-880q74 0 139.5 28.5T734-774q49 49 77.5 114.5T840-520v400q0 33-23.5 56.5T760-40H480ZM200-240h80v-160h-80v160Zm480 0h80v-160h-80v160ZM200-400h80-80Zm480 0h80-80Z" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      height="1em"
+                      viewBox="0 -960 960 960"
+                      width="1em"
+                      fill="currentColor"
+                    >
+                      <path d="m840-234-80-80v-86h-86l-80-80h166v-40q0-118-82-199t-198-81q-44 0-83.5 12.5T324-752l-58-56q45-35 99.5-53.5T480-880q74 0 139.5 28T734-775q49 49 77.5 114.5T840-520v286ZM480-40v-80h247l-40-40h-87v-87L221-626q-9 24-15 51.5t-6 54.5v40h160v320H200q-33 0-56.5-23.5T120-240v-280q0-45 10.5-87t30.5-80L27-820l57-56L875-84v44H480ZM200-240h80v-160h-80v160Zm0-160h80-80Zm474 0h86-86Z" />
+                    </svg>
+                  )}
+                </div>
+                <div
+                  id="RTC-panel-content-main-buttons-down-exit"
+                  onClick={() => {
+                    setSelectedRTC((prev) => ({
+                      ...prev,
+                      isConnected: false,
+                    }));
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="1em"
+                    height="1em"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877zm9.261 1.135a.5.5 0 0 1 .708 0L13 2.793l1.146-1.147a.5.5 0 0 1 .708.708L13.707 3.5l1.147 1.146a.5.5 0 0 1-.708.708L13 4.207l-1.146 1.147a.5.5 0 0 1-.708-.708L12.293 3.5l-1.147-1.146a.5.5 0 0 1 0-.708"
+                    />
+                  </svg>
+                </div>
+                <div
+                  id="RTC-panel-content-main-buttons-down-settings"
+                  onClick={() => {
+                    setSettingsPanelIsOpen(true);
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="1em"
+                    height="1em"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
         </RtcModal>
       )}

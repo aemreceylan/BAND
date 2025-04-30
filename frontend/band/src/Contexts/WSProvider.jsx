@@ -23,6 +23,13 @@ export default function WSProvider({ children }) {
     id: "",
     name: "",
   });
+  const [rtcMediaSettings, setRtcMediaSettings] = useState({
+    mic: { status: false },
+    cam: { status: false },
+    screen: { status: false },
+    listen: { status: true },
+  });
+  const [streams, setStreams] = useState({});
   const [csrfRequest, csrfRequestData] = useFetch();
   const [isAuthRequest, isAuthData] = useFetch();
 
@@ -36,32 +43,51 @@ export default function WSProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (selectedRTC.id) {
-      if (selectedRTC.isConnected == true) {
-        socket.emit("leaveChannel", activeRTC.id, (data) => {
-          console.log(data.msg);
-        });
-        socket.emit("joinChannel", selectedRTC.id, (data) => {
-          console.log(data);
-        });
-        setActiveRTC({ id: selectedRTC.id, name: selectedRTC.name });
-      } else if (selectedRTC.isConnected == false) {
-        socket.emit("leaveChannel", selectedRTC.id, (data) => {
-          console.log(data.msg);
-          if (data.status) {
-            setSelectedRTC({
-              id: "",
-              name: "",
-            });
-            setActiveRTC({
-              id: "",
-              name: "",
-            });
-          }
-        });
-      }
+    if (selectedRTC.isConnected == true) {
+      socket.emit("leaveChannel", activeRTC.id, (data) => {
+        console.log(data.msg);
+      });
+      socket.emit("joinChannel", selectedRTC.id, (data) => {
+        console.log(data);
+      });
+      setActiveRTC({ id: selectedRTC.id, name: selectedRTC.name });
+    } else if (selectedRTC.isConnected == false) {
+      socket.emit("leaveChannel", activeRTC.id, (data) => {
+        console.log(data.msg);
+        if (data.status) {
+          setSelectedRTC({
+            id: "",
+            name: "",
+          });
+          setActiveRTC({
+            id: "",
+            name: "",
+          });
+        }
+      });
     }
   }, [selectedRTC.isConnected]);
+
+  useEffect(() => {
+    if (activeRTC.id) {
+      (async () => {
+        try {
+          const audio = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          setStreams((prev) => ({ ...prev, audio: audio }));
+        } catch (err) {
+          console.log(err);
+        }
+      })();
+    } else {
+      Object.values(streams).forEach((element) => {
+        element.getTracks().forEach((element) => {
+          element.stop();
+        });
+      });
+    }
+  }, [activeRTC]);
 
   useEffect(() => {
     if (csrfRequestData) {
@@ -129,6 +155,11 @@ export default function WSProvider({ children }) {
     selectedRTC,
     setSelectedRTC,
     activeRTC,
+    setActiveRTC,
+    rtcMediaSettings,
+    setStreams,
+    streams,
+    setRtcMediaSettings,
   };
 
   return (

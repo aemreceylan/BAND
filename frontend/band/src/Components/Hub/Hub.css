@@ -153,7 +153,7 @@
   color: var(--dark-font-medium-gray);
 }
 
-.hubSettings-settingContainer button{
+.hubSettings-settingContainer button {
   font-family: "Lato";
   background-color: var(--dark-background-dark-gray);
   border: none;
@@ -179,7 +179,8 @@
   margin-top: 1rem;
 }
 
-#RTC-panel-connecting-screen-buttons div[id^="RTC-panel-connecting-screen-buttons-button-"] {
+#RTC-panel-connecting-screen-buttons
+  div[id^="RTC-panel-connecting-screen-buttons-button-"] {
   cursor: pointer;
   border-radius: 0.5rem;
   width: 4em;
@@ -191,21 +192,46 @@
 }
 
 #RTC-panel-connecting-screen-buttons-button-connect {
-  background-color: var(--dark-font-dark-gray); 
-  color: var(--dark-background-light-gray); 
+  background-color: var(--dark-font-dark-gray);
+  color: var(--dark-background-light-gray);
 }
 
 #RTC-panel-connecting-screen-buttons-button-connect:hover {
-  background-color: var(--dark-font-light-gray); 
+  background-color: var(--dark-font-light-gray);
   color: var(--dark-background-dark-gray);
 }
 
 #RTC-panel-connecting-screen-buttons-button-dtconnect {
-  background-color: var(--dark-background-dark-gray); 
-  color: var(--dark-font-medium-gray); 
+  background-color: var(--dark-background-dark-gray);
+  color: var(--dark-font-medium-gray);
 }
 
 #RTC-panel-connecting-screen-buttons-button-dtconnect:hover {
-  background-color: var(--dark-font-dark-gray); 
+  background-color: var(--dark-font-dark-gray);
   color: var(--dark-background-light-gray);
+}
+
+#RTC-panel-content-main-buttons-down {
+  display: flex;
+  gap: 1em;
+}
+
+#RTC-panel-content-main-buttons-down > div {
+  cursor: pointer;
+}
+
+#RTC-panel-content-main-buttons-up {
+  display: flex;
+  gap: 1em;
+  margin: 1em 0;
+}
+
+#RTC-panel-content-main-buttons-up > div {
+  cursor: pointer;
+}
+
+#hubSettings-container-content-personalSettings-cam-test {
+  width: 512px;
+  aspect-ratio: 16/9;
+  background-color: black;
 }

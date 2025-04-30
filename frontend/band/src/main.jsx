@@ -5,8 +5,8 @@ import WSProvider from "./Contexts/WSProvider.jsx";
 
 createRoot(document.getElementById("root")).render(
   // <StrictMode>
-    <WSProvider>
-      <App />
-    </WSProvider>
+  <WSProvider>
+    <App />
+  </WSProvider>
   // </StrictMode>
 );
