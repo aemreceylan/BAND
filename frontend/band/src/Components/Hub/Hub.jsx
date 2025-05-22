@@ -81,8 +81,19 @@ export default function Hub() {
     } else if (!settingsPanelIsOpen) {
       if (streams.camVideoTest) {
         streams.camVideoTest.getTracks().forEach((element) => element.stop());
-        delete streams.camVideoTest;
-        if (camVideoRef.current) camVideoRef.current.srcObject = "";
+        setStreams((prev) => {
+          const { camVideoTest, ...other } = prev;
+          return other;
+        });
+        if (camVideoRef.current) camVideoRef.current.srcObject = null;
+      }
+      if (streams.micAudioTest) {
+        streams.micAudioTest.getTracks().forEach((element) => element.stop());
+        setStreams((prev) => {
+          const { micAudioTest, ...other } = prev;
+          return other;
+        });
+        if (micAudioRef.current) micAudioRef.current.srcObject = null;
       }
     }
   }, [settingsPanelIsOpen, selectedOption]);
@@ -91,6 +102,26 @@ export default function Hub() {
     if (settingsPanelIsOpen && selectedOption == 0) {
       (async () => {
         try {
+          if (streams.camVideoTest) {
+            streams.camVideoTest
+              .getTracks()
+              .forEach((element) => element.stop());
+            setStreams((prev) => {
+              const { camVideoTest, ...other } = prev;
+              return other;
+            });
+            if (camVideoRef.current) camVideoRef.current.srcObject = null;
+          }
+          if (streams.micAudioTest) {
+            streams.micAudioTest
+              .getTracks()
+              .forEach((element) => element.stop());
+            setStreams((prev) => {
+              const { micAudioTest, ...other } = prev;
+              return other;
+            });
+            if (micAudioRef.current) micAudioRef.current.srcObject = null;
+          }
           const camVideoTestStream = await navigator.mediaDevices.getUserMedia({
             video: { deviceId: rtcMediaSettings.cam.id },
           });

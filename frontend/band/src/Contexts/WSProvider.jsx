@@ -73,7 +73,9 @@ export default function WSProvider({ children }) {
       (async () => {
         try {
           const audio = await navigator.mediaDevices.getUserMedia({
-            audio: true,
+            audio: {
+              deviceId: rtcMediaSettings.mic.id,
+            },
           });
           setStreams((prev) => ({ ...prev, audio: audio }));
         } catch (err) {
