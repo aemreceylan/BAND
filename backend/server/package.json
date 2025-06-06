@@ -23,6 +23,7 @@
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
+    "mediasoup": "^3.15.8",
     "mongoose": "^8.10.1",
     "socket.io": "^4.8.1",
     "utf-8-validate": "^6.0.5"

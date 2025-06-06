@@ -10,6 +10,8 @@ import csrf from "@dr.pogodin/csurf";
 import jwt from "jsonwebtoken";
 
 import DB from "./mongo.js";
+import ms from "./media.js";
+
 import User from "./models/User.js";
 import Channel from "./models/Channel.js";
 import Category from "./models/Category.js";
@@ -355,6 +357,32 @@ app.use(csrf());
       } catch (err) {
         console.log(err);
         callback("Error");
+      }
+    });
+
+    socket.on("msServer", async (data, callback) => {
+      switch (data.type) {
+        case "getRtpCap":
+          callback(await ms.getRtpCap());
+          break;
+        case "create-producer-transport":
+          callback(await ms.createTransport("produce"));
+          break;
+        case "connect-transport":
+          callback(await ms.connectTransport(data.dtlsParameters, data.id));
+          break;
+        case "start-producing":
+          callback(await ms.startProducing(data.params));
+          break;
+        case "create-consumer-transport":
+          callback(await ms.createTransport("consume"));
+          break;
+        case "consume-media":
+          callback(await ms.consumeMedia(data.rtpCapabilities));
+          break;
+        case "unpause-consumer":
+          callback(await ms.unpauseConsumer());
+          break;
       }
     });
 

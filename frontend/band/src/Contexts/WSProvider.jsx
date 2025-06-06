@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import useFetch from "../hooks/useFetch";
+import useCall from "../hooks/useCall";
 
 export const WSContext = createContext();
 
@@ -30,8 +31,10 @@ export default function WSProvider({ children }) {
     listen: { status: true },
   });
   const [streams, setStreams] = useState({});
+
   const [csrfRequest, csrfRequestData] = useFetch();
   const [isAuthRequest, isAuthData] = useFetch();
+  const [callInit, getStreams, setProducerTransport, publish ,setConsumerTransport, consume] = useCall();
 
   useEffect(() => {
     isAuthRequest({ url: "session-check" });
@@ -72,12 +75,13 @@ export default function WSProvider({ children }) {
     if (activeRTC.id) {
       (async () => {
         try {
-          const audio = await navigator.mediaDevices.getUserMedia({
-            audio: {
-              deviceId: rtcMediaSettings.mic.id,
-            },
-          });
-          setStreams((prev) => ({ ...prev, audio: audio }));
+          const streamList = await getStreams(rtcMediaSettings);
+          await setProducerTransport(socket);
+          await setConsumerTransport(socket);
+          setStreams((prev) => ({
+            ...prev,
+            ...streamList,
+          }));
         } catch (err) {
           console.log(err);
         }
@@ -88,6 +92,7 @@ export default function WSProvider({ children }) {
           element.stop();
         });
       });
+      setStreams({});
     }
   }, [activeRTC]);
 
@@ -126,6 +131,7 @@ export default function WSProvider({ children }) {
       socket.on("sectionList", (data) => {
         setSectionList(JSON.parse(data));
       });
+      callInit(socket);
     }
   }, [socket]);
 
@@ -162,6 +168,8 @@ export default function WSProvider({ children }) {
     setStreams,
     streams,
     setRtcMediaSettings,
+    publish,
+    consume
   };
 
   return (
