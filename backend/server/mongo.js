@@ -1,4 +1,3 @@
-import argon2 from "argon2";
 import mongoose from "mongoose";
 import User from "./models/User.js";
 import Channel from "./models/Channel.js";
@@ -155,6 +154,19 @@ function editChannel(data) {
   });
 }
 
+function isRtcChannel(data) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const result = await Channel.findOne({ ...data, type: 1 });
+      if (result) resolve(true);
+      else resolve(false);
+    } catch (err) {
+      reject(err);
+    }
+    i;
+  });
+}
+
 export default function DB() {
   return {
     init,
@@ -166,5 +178,20 @@ export default function DB() {
     getMessages,
     editCategory,
     editChannel,
+    isRtcChannel,
   };
+}
+
+export function msDB() {
+  const getRtcChannelList = () => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const result = await Channel.find({ type: 1 });
+        resolve(result);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  };
+  return { getRtcChannelList };
 }

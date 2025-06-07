@@ -235,3 +235,11 @@
   aspect-ratio: 16/9;
   background-color: black;
 }
+
+.rtcCallAudio {
+  display: none;
+}
+
+#hubRtcAudioDiv {
+  display: none;
+}

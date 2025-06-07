@@ -34,7 +34,16 @@ export default function WSProvider({ children }) {
 
   const [csrfRequest, csrfRequestData] = useFetch();
   const [isAuthRequest, isAuthData] = useFetch();
-  const [callInit, getStreams, setProducerTransport, publish ,setConsumerTransport, consume] = useCall();
+  const [
+    callInit,
+    getStreams,
+    setProducerTransport,
+    publish,
+    setConsumerTransport,
+    consume,
+    disconnect,
+    isDisconnect,
+  ] = useCall();
 
   useEffect(() => {
     isAuthRequest({ url: "session-check" });
@@ -50,7 +59,7 @@ export default function WSProvider({ children }) {
       socket.emit("leaveChannel", activeRTC.id, (data) => {
         console.log(data.msg);
       });
-      socket.emit("joinChannel", selectedRTC.id, (data) => {
+      socket.emit("joinChannel", selectedRTC.id, async (data) => {
         console.log(data);
       });
       setActiveRTC({ id: selectedRTC.id, name: selectedRTC.name });
@@ -75,9 +84,15 @@ export default function WSProvider({ children }) {
     if (activeRTC.id) {
       (async () => {
         try {
+          if (!isDisconnect()) {
+            console.log("Switching room");
+            await disconnect(socket);
+          }
+          await callInit(socket);
           const streamList = await getStreams(rtcMediaSettings);
           await setProducerTransport(socket);
           await setConsumerTransport(socket);
+          consume(socket);
           setStreams((prev) => ({
             ...prev,
             ...streamList,
@@ -131,7 +146,6 @@ export default function WSProvider({ children }) {
       socket.on("sectionList", (data) => {
         setSectionList(JSON.parse(data));
       });
-      callInit(socket);
     }
   }, [socket]);
 
@@ -169,7 +183,8 @@ export default function WSProvider({ children }) {
     streams,
     setRtcMediaSettings,
     publish,
-    consume
+    disconnect,
+    isDisconnect,
   };
 
   return (

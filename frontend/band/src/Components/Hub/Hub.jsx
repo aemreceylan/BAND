@@ -41,8 +41,8 @@ export default function Hub() {
     setStreams,
     streams,
     publish,
-    consume,
     socket,
+    disconnect,
   } = useContext(WSContext);
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
@@ -54,7 +54,6 @@ export default function Hub() {
   const [rtcDevices, setRtcDevices] = useState();
   const camVideoRef = useRef();
   const micAudioRef = useRef();
-  const rtcCallAudioRef = useRef();
 
   useEffect(() => {
     if (!selectedCategoryOption && sectionList && sectionList.length > 0)
@@ -153,10 +152,7 @@ export default function Hub() {
         micAudioRef.current.srcObject = streams.micAudioTest;
     }
     if (streams.audio) {
-      (async () => {
-        await publish(streams.audio);
-        await consume(socket);
-      })();
+      publish(streams.audio, "audio");
     }
   }, [streams]);
 
@@ -586,6 +582,7 @@ export default function Hub() {
                       ...prev,
                       isConnected: false,
                     }));
+                    disconnect(socket);
                   }}
                 >
                   <svg
@@ -620,7 +617,7 @@ export default function Hub() {
               </div>
             </div>
           </div>
-          <audio id="rtcCallAudio" ref={rtcCallAudioRef} autoPlay></audio>
+          <div id="hubRtcAudioDiv"></div>
         </RtcModal>
       )}
       {!selectedRTC.isConnected && selectedRTC.id && (

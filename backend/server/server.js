@@ -309,11 +309,23 @@ app.use(csrf());
 
     emitHubSections();
 
+    let rtcInx;
+    let roomName;
+    let msLeaveData = {};
+    let closeTransportsInxQueue = [];
+
     socket.on("joinChannel", async (data, callback) => {
       try {
         const response = await Channel.findOne({ _id: data }).select({
           name: 1,
         });
+        if (ms.rtcChannelMsData.has(response.id)) {
+          rtcInx = ms.rtcChannelMsData.get(response.id);
+          closeTransportsInxQueue.push(rtcInx);
+          console.log("join");
+          console.log(closeTransportsInxQueue);
+          roomName = response.name;
+        }
         socket.join(response.name);
         console.log("Client joined: " + response.name + " --> " + socket.id);
         callback("Connected to " + response.name);
@@ -363,32 +375,119 @@ app.use(csrf());
     socket.on("msServer", async (data, callback) => {
       switch (data.type) {
         case "getRtpCap":
-          callback(await ms.getRtpCap());
+          try {
+            callback(await ms.getRtpCap(rtcInx[0], rtcInx[1]));
+          } catch (err) {
+            console.log(err);
+            callback(false);
+          }
           break;
         case "create-producer-transport":
-          callback(await ms.createTransport("produce"));
+          try {
+            const data = await ms.createTransport(
+              "produce",
+              rtcInx[0],
+              rtcInx[1]
+            );
+            callback(data);
+            msLeaveData.p_id = data.id;
+          } catch (err) {
+            console.log(err);
+            callback(false);
+          }
           break;
         case "connect-transport":
-          callback(await ms.connectTransport(data.dtlsParameters, data.id));
+          try {
+            callback(await ms.connectTransport(data.dtlsParameters, data.id));
+          } catch (err) {
+            console.log(err);
+            callback(false);
+          }
           break;
         case "start-producing":
-          callback(await ms.startProducing(data.params));
+          try {
+            callback(
+              await ms.startProducing(
+                socket.broadcast.to(roomName),
+                data.params,
+                data.id
+              )
+            );
+          } catch (err) {
+            console.log(err);
+            callback(-1);
+          }
           break;
         case "create-consumer-transport":
-          callback(await ms.createTransport("consume"));
+          try {
+            const data = await ms.createTransport(
+              "consume",
+              rtcInx[0],
+              rtcInx[1]
+            );
+            callback(data);
+            msLeaveData.c_id = data.id;
+          } catch (err) {
+            console.log(err);
+            callback(false);
+          }
           break;
         case "consume-media":
-          callback(await ms.consumeMedia(data.rtpCapabilities));
+          try {
+            callback(
+              await ms.consumeMedia(data.rtpCapabilities, data.c_id, data.p_id)
+            );
+          } catch (err) {
+            console.log(err);
+            callback(false);
+          }
           break;
         case "unpause-consumer":
-          callback(await ms.unpauseConsumer());
+          try {
+            callback(await ms.unpauseConsumer(data.id));
+          } catch (err) {
+            console.log(err);
+            callback(false);
+          }
+          break;
+        case "get-producer-list":
+          try {
+            callback(
+              await ms.getProducers(
+                data.produceTransportId,
+                rtcInx[0],
+                rtcInx[1]
+              )
+            );
+          } catch (err) {
+            console.log(err);
+            callback(false);
+          }
+          break;
+        case "close-transports":
+          try {
+            console.log("close");
+            console.log(closeTransportsInxQueue);
+            callback(
+              await ms.closeTransports(
+                data.p_id,
+                data.c_id,
+                closeTransportsInxQueue[0]
+              )
+            );
+            closeTransportsInxQueue.shift();
+          } catch (err) {
+            console.log(err);
+            callback(false);
+          }
           break;
       }
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       console.log("Client disconnected: " + socket.id);
       try {
+        await ms.closeTransports(msLeaveData.p_id, msLeaveData.c_id, rtcInx);
         User.findByIdAndUpdate(socket.userId, { lastLoginDate: Date.now() });
       } catch (err) {
         console.log(err);

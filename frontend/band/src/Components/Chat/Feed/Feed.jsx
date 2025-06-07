@@ -106,9 +106,11 @@ export default function Feed() {
           }
         }}
       >
-        {!activeRTC.screen && feedContentLoading && <span className="loader"></span>}
+        {!activeRTC.screen && feedContentLoading && (
+          <span className="loader"></span>
+        )}
         {activeRTC.screen
-          ? ("")
+          ? ""
           : messages[selectedChannel.id]?.map((element, index) => (
               <Post key={index} data={element} />
             ))}
