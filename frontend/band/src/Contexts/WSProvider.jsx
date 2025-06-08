@@ -31,6 +31,12 @@ export default function WSProvider({ children }) {
     listen: { status: false },
   });
   const [streams, setStreams] = useState({});
+  const [consumingStreams, setConsumingStreams] = useState({
+    audio: [],
+    cam: [],
+    screen: [],
+  });
+  const [rtcScreen, setRtcScreen] = useState(false);
 
   const [csrfRequest, csrfRequestData] = useFetch();
   const [isAuthRequest, isAuthData] = useFetch();
@@ -44,7 +50,7 @@ export default function WSProvider({ children }) {
     disconnect,
     isDisconnect,
     waitNewProducers,
-  ] = useCall();
+  ] = useCall(setConsumingStreams);
 
   useEffect(() => {
     isAuthRequest({ url: "session-check" });
@@ -90,7 +96,7 @@ export default function WSProvider({ children }) {
             await disconnect(socket);
           }
           await callInit(socket);
-          const streamList = await getStreams(rtcMediaSettings);
+          const streamList = await getStreams(rtcMediaSettings, ["audio"]);
           await setProducerTransport(socket);
           await setConsumerTransport(socket);
           (async () => {
@@ -189,6 +195,10 @@ export default function WSProvider({ children }) {
     publish,
     disconnect,
     isDisconnect,
+    consumingStreams,
+    getStreams,
+    rtcScreen,
+    setRtcScreen,
   };
 
   return (

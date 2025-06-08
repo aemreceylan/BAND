@@ -1,7 +1,7 @@
 import * as mediasoup from "mediasoup-client";
 import { useRef } from "react";
 
-export default function useCall() {
+export default function useCall(setConsumingStreams) {
   const deviceRef = useRef();
   const produceTransportRef = useRef();
   const producerRef = useRef([]);
@@ -9,6 +9,8 @@ export default function useCall() {
   const consumerRef = useRef([]);
   const consumeTransportIdRef = useRef();
   const produceTransportIdRef = useRef();
+
+  const getStatus = () => {};
 
   const waitNewProducers = (() => {
     let isInitialized = false;
@@ -51,7 +53,7 @@ export default function useCall() {
     });
   };
 
-  const setupAudio = (socket, index) => {
+  const setupAudio = (socket, index, userId) => {
     return new Promise(async (resolve, reject) => {
       const { track } = consumerRef.current[index];
       const stream = new MediaStream([track]);
@@ -59,11 +61,26 @@ export default function useCall() {
         type: "unpause-consumer",
         id: consumerRef.current[index].id,
       });
-      const audioElement = document.createElement("audio");
-      audioElement.srcObject = stream;
-      audioElement.autoplay = true;
-      audioElement.className = "rtcCallAudio";
-      document.getElementById("hubRtcAudioDiv")?.appendChild(audioElement);
+      setConsumingStreams((prev) => ({
+        ...prev,
+        audio: [...prev.audio, { stream, userId }],
+      }));
+      resolve();
+    });
+  };
+
+  const setupCam = (socket, index, userId) => {
+    return new Promise(async (resolve, reject) => {
+      const { track } = consumerRef.current[index];
+      const stream = new MediaStream([track]);
+      await socket.emitWithAck("msServer", {
+        type: "unpause-consumer",
+        id: consumerRef.current[index].id,
+      });
+      setConsumingStreams((prev) => ({
+        ...prev,
+        cam: [...prev.cam, { stream, userId }],
+      }));
       resolve();
     });
   };
@@ -92,10 +109,10 @@ export default function useCall() {
     });
   };
 
-  const getStreams = (devices) => {
+  const getStreams = (devices, types) => {
     return new Promise(async (resolve, reject) => {
       const streams = {};
-      if (devices.mic.id) {
+      if (devices.mic.id && types.includes("audio")) {
         const audioStream = await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: true,
@@ -104,6 +121,16 @@ export default function useCall() {
           },
         });
         streams.audio = audioStream;
+      }
+      if (devices.cam.id && types.includes("cam")) {
+        const camStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            deviceId: devices.cam.id,
+            facingMode: "user",
+            frameRate: { ideal: 30, max: 60 },
+          },
+        });
+        streams.cam = camStream;
       }
       resolve(streams);
     });
@@ -155,17 +182,16 @@ export default function useCall() {
     });
   };
 
-  const publish = (stream, type) => {
+  const publish = (stream, _type) => {
     return new Promise(async (resolve, reject) => {
       const track = stream.getTracks()[0];
-      producerRef.current.push([
+      producerRef.current.push(
         await produceTransportRef.current.produce({
           track,
-        }),
-        ,
-        type,
-      ]);
-      resolve({ type: "audio", inx: producerRef.current.length - 1 });
+          appData: { type: _type },
+        })
+      );
+      resolve({ type: _type, inx: producerRef.current.length - 1 });
     });
   };
 
@@ -210,7 +236,18 @@ export default function useCall() {
         consumerRef.current.push(
           await consumeTransportRef.current.consume(consumer_params)
         );
-        setupAudio(socket, consumerRef.current.length - 1);
+        if (consumer_params.appData.type == "audio")
+          setupAudio(
+            socket,
+            consumerRef.current.length - 1,
+            consumer_params.appData.userId
+          );
+        else if (consumer_params.appData.type == "cam")
+          setupCam(
+            socket,
+            consumerRef.current.length - 1,
+            consumer_params.appData.userId
+          );
       }
       console.log(
         "Consuming:" + consumerRef.current[consumerRef.current.length - 1].id

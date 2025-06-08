@@ -3,12 +3,14 @@ import "./Feed.css";
 import { useContext, useEffect, useRef, useState } from "react";
 import { WSContext } from "../../../Contexts/WSProvider";
 import useFetch from "../../../hooks/useFetch";
+import RtcScreen from "./RTC/RtcScreen";
 
 export default function Feed() {
   const feedRef = useRef();
   const messageAmountRef = useRef(25);
   const scrollData = useRef({});
-  const { selectedChannel, socket, activeRTC } = useContext(WSContext);
+  const { selectedChannel, socket, rtcScreen, setRtcScreen } =
+    useContext(WSContext);
   const [feedContentRequest, feedContentRequestData, feedContentLoading] =
     useFetch();
   const [messages, setMessages] = useState({});
@@ -16,6 +18,7 @@ export default function Feed() {
 
   useEffect(() => {
     if (selectedChannel.id) {
+      setRtcScreen(false);
       if (!messages[selectedChannel.id]) {
         setMessages((prev) => ({
           ...prev,
@@ -106,14 +109,14 @@ export default function Feed() {
           }
         }}
       >
-        {!activeRTC.screen && feedContentLoading && (
-          <span className="loader"></span>
+        {!rtcScreen && feedContentLoading && <span className="loader"></span>}
+        {rtcScreen ? (
+          <RtcScreen />
+        ) : (
+          messages[selectedChannel.id]?.map((element, index) => (
+            <Post key={index} data={element} />
+          ))
         )}
-        {activeRTC.screen
-          ? ""
-          : messages[selectedChannel.id]?.map((element, index) => (
-              <Post key={index} data={element} />
-            ))}
       </div>
     </>
   );

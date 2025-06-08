@@ -85,7 +85,7 @@ const ms = (() => {
           }
         }
         await consumer.resume();
-        console.log("Consumer Unpasued :> ID: " + consumer.id)
+        console.log("Consumer Unpasued :> ID: " + consumer.id);
         resolve();
       } catch (err) {
         reject(err);
@@ -104,19 +104,28 @@ const ms = (() => {
             for (const element of router.transports) {
               if (element.transport.id == c_id) {
                 transport = element;
-                _router = router.router;
+                _router = router;
                 break loop;
               }
             }
           }
         }
         if (
-          !_router.canConsume({
+          !_router.router.canConsume({
             producerId,
             rtpCapabilities,
           })
         ) {
           throw new Error("Cannot be consumed");
+        }
+        let producer;
+        loop: for (const transport of _router.transports) {
+          for (const element of transport.list) {
+            if ((element.id == producerId)) {
+              producer = element;
+              break loop;
+            }
+          }
         }
         const clientConsumer = await transport.transport.consume({
           producerId,
@@ -142,6 +151,7 @@ const ms = (() => {
           id: clientConsumer.id,
           kind: clientConsumer.kind,
           rtpParameters: clientConsumer.rtpParameters,
+          appData: producer.appData,
         };
         resolve(consumer_params);
       } catch (err) {
@@ -150,7 +160,7 @@ const ms = (() => {
     });
   }
 
-  function startProducing(socket, params, id) {
+  function startProducing(socket, params, id,userId) {
     return new Promise(async (resolve, reject) => {
       try {
         let transport;
@@ -164,6 +174,7 @@ const ms = (() => {
                 clientProducer.on("transportclose", () => {
                   clientProducer.close();
                 });
+                clientProducer.appData.userId=userId;
                 element.list.push(clientProducer);
                 console.log(
                   "Producer Created :> ID: " +
@@ -171,7 +182,9 @@ const ms = (() => {
                     " Kind: " +
                     clientProducer.kind +
                     " Transport ID: " +
-                    element.transport.id
+                    element.transport.id +
+                    " Type: " +
+                    clientProducer.appData.type
                 );
                 break loop;
               }

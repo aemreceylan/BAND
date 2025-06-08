@@ -1,0 +1,10 @@
+.rtcScreen-streamRow {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.5rem;
+  border: 0.1rem solid var(--dark-font-medium-gray);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-radius: 0.5rem;
+}

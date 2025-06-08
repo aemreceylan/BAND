@@ -1,0 +1,41 @@
+.rtcScreen-streamRow-video {
+  border: 0.1rem solid var(--dark-font-medium-gray);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.rtcScreen-streamRow-video video {
+  width: 100%;
+  height: 100%;
+  background-color: black;
+}
+
+.rtcScreen-streamRow-video-info {
+  position: absolute;
+  left: 0.3em;
+  bottom: 0.3em;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  max-width: 20%;
+  height: 3rem;
+  background-color: black;
+  opacity: 0.8;
+  color: white;
+}
+
+.rtcScreen-streamRow-video-photo{
+    height: 100%;
+    border-radius: 50%;
+    aspect-ratio: 1/1;
+}
+
+.rtcScreen-streamRow-video-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  overflow: hidden;
+}

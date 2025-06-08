@@ -408,7 +408,8 @@ app.use(csrf());
               await ms.startProducing(
                 socket.broadcast.to(roomName),
                 data.params,
-                data.id
+                data.id,
+                socket.userId
               )
             );
           } catch (err) {
