@@ -322,8 +322,6 @@ app.use(csrf());
         if (ms.rtcChannelMsData.has(response.id)) {
           rtcInx = ms.rtcChannelMsData.get(response.id);
           closeTransportsInxQueue.push(rtcInx);
-          console.log("join");
-          console.log(closeTransportsInxQueue);
           roomName = response.name;
         }
         socket.join(response.name);
@@ -466,8 +464,6 @@ app.use(csrf());
           break;
         case "close-transports":
           try {
-            console.log("close");
-            console.log(closeTransportsInxQueue);
             callback(
               await ms.closeTransports(
                 data.p_id,

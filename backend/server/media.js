@@ -15,13 +15,10 @@ const ms = (() => {
   function closeTransports(p_id, c_id, inx) {
     return new Promise((resolve, reject) => {
       try {
-        console.log(inx);
         if (!p_id || !c_id)
           throw new Error("At least one of the parameters is not defined");
         if (!workers[inx[0]].routers[inx[1]])
           throw new Error("The specified worker or router does not exist.");
-        console.log("-----------close1--------------");
-        console.log(workers[inx[0]].routers[inx[1]].transports);
         workers[inx[0]].routers[inx[1]].transports = workers[inx[0]].routers[
           inx[1]
         ].transports.filter((element) => {
@@ -30,16 +27,16 @@ const ms = (() => {
           } else {
             element.transport.close();
             console.log(
-              "Transport Closed:> id: " +
+              "Transport Closed:> ID: " +
                 element.transport.id +
-                " type: " +
-                element.type
+                " Type: " +
+                element.type +
+                " <> " +
+                inx
             );
             return false;
           }
         });
-        console.log("-----------close2--------------");
-        console.log(workers[inx[0]].routers[inx[1]].transports);
         resolve();
       } catch (err) {
         reject(err);
@@ -88,6 +85,7 @@ const ms = (() => {
           }
         }
         await consumer.resume();
+        console.log("Consumer Unpasued :> ID: " + consumer.id)
         resolve();
       } catch (err) {
         reject(err);
@@ -129,6 +127,16 @@ const ms = (() => {
           clientConsumer.close();
         });
         transport.list.push(clientConsumer);
+        console.log(
+          "Consumer Created :> ID: " +
+            clientConsumer.id +
+            " Kind: " +
+            clientConsumer.kind +
+            " Troducer_ID: " +
+            producerId +
+            " Transport_ID: " +
+            transport.transport.id
+        );
         const consumer_params = {
           producerId,
           id: clientConsumer.id,
@@ -157,12 +165,20 @@ const ms = (() => {
                   clientProducer.close();
                 });
                 element.list.push(clientProducer);
-                socket.emit("msServer-newProducer", clientProducer.id);
+                console.log(
+                  "Producer Created :> ID: " +
+                    clientProducer.id +
+                    " Kind: " +
+                    clientProducer.kind +
+                    " Transport ID: " +
+                    element.transport.id
+                );
                 break loop;
               }
             }
           }
         }
+        socket.emit("msServer-newProducer", clientProducer.id);
         resolve(clientProducer.id);
       } catch (err) {
         reject(err);
@@ -190,9 +206,9 @@ const ms = (() => {
           dtlsParameters,
         });
         console.log(
-          "Transport Connected:> id: " +
+          "Transport Connected:> ID: " +
             transport.id +
-            " type: " +
+            " Type: " +
             transport_type
         );
         resolve(true);
@@ -238,10 +254,13 @@ const ms = (() => {
           dtlsParameters: transport.dtlsParameters,
         };
         console.log(
-          "Transport Created:> id: " + transport.id + " type: " + type_data
+          "Transport Created:> ID: " +
+            transport.id +
+            " Type: " +
+            type_data +
+            " <> " +
+            [worker_in, router_in]
         );
-        console.log("-----------create--------------");
-        console.log(workers[worker_in].routers[router_in].transports);
         resolve(transport_params);
       } catch (err) {
         reject(err);

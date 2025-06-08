@@ -152,7 +152,16 @@ export default function Hub() {
         micAudioRef.current.srcObject = streams.micAudioTest;
     }
     if (streams.audio) {
-      publish(streams.audio, "audio");
+      (async () => {
+        const data = await publish(streams.audio, "audio");
+        setRtcMediaSettings((prev) => ({
+          ...prev,
+          [e.target.name]: {
+            status: prev[e.target.name].status,
+            id: e.target.value,
+          },
+        }));
+      })();
     }
   }, [streams]);
 
@@ -528,7 +537,7 @@ export default function Hub() {
               </div>
               <div id="RTC-panel-content-main-buttons-down">
                 <div id="RTC-panel-content-main-buttons-down-mic">
-                  {rtcMediaSettings.mic.status ? (
+                  {!rtcMediaSettings.mic.status ? (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="1em"

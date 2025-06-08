@@ -28,7 +28,7 @@ export default function WSProvider({ children }) {
     mic: { status: false },
     cam: { status: false },
     screen: { status: false },
-    listen: { status: true },
+    listen: { status: false },
   });
   const [streams, setStreams] = useState({});
 
@@ -43,6 +43,7 @@ export default function WSProvider({ children }) {
     consume,
     disconnect,
     isDisconnect,
+    waitNewProducers,
   ] = useCall();
 
   useEffect(() => {
@@ -92,7 +93,10 @@ export default function WSProvider({ children }) {
           const streamList = await getStreams(rtcMediaSettings);
           await setProducerTransport(socket);
           await setConsumerTransport(socket);
-          consume(socket);
+          (async () => {
+            await consume(socket);
+            waitNewProducers(socket);
+          })();
           setStreams((prev) => ({
             ...prev,
             ...streamList,

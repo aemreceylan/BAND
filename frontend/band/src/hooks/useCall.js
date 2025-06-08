@@ -1,5 +1,5 @@
 import * as mediasoup from "mediasoup-client";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 export default function useCall() {
   const deviceRef = useRef();
@@ -9,6 +9,20 @@ export default function useCall() {
   const consumerRef = useRef([]);
   const consumeTransportIdRef = useRef();
   const produceTransportIdRef = useRef();
+
+  const waitNewProducers = (() => {
+    let isInitialized = false;
+
+    return (socket) => {
+      if (isInitialized) return;
+      isInitialized = true;
+
+      socket.on("msServer-newProducer", (data) => {
+        console.log("User joined:> " + data);
+        consumeStream(socket, data);
+      });
+    };
+  })();
 
   const isDisconnect = () => {
     return (
@@ -55,10 +69,6 @@ export default function useCall() {
   };
 
   const setConsumers = (socket) => {
-    socket.on("msServer-newProducer", (data) => {
-      console.log("User joined:> " + data);
-      consumeStream(socket, data);
-    });
     return new Promise(async (resolve, reject) => {
       const response = await socket.emitWithAck("msServer", {
         type: "get-producer-list",
@@ -155,7 +165,7 @@ export default function useCall() {
         ,
         type,
       ]);
-      resolve();
+      resolve({ type: "audio", inx: producerRef.current.length - 1 });
     });
   };
 
@@ -218,5 +228,6 @@ export default function useCall() {
     setConsumers,
     disconnect,
     isDisconnect,
+    waitNewProducers,
   ];
 }
