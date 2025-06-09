@@ -12,7 +12,7 @@ export default function Chat() {
       <div id="chat">
         <Panel />
         <Feed />
-        {!rtcScreen.screen && <ChatBox />}
+        {!rtcScreen && <ChatBox />}
       </div>
     </>
   );

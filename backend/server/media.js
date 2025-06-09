@@ -12,6 +12,21 @@ const ms = (() => {
 
   initMedia();
 
+  function closeProducer(id, rtcInx) {
+    return new Promise(async (resolve, reject) => {
+      loop: for (const transport of workers[rtcInx[0]].routers[rtcInx[1]]
+        .transports) {
+        for (const element of transport.list) {
+          if (element.id == id) {
+            element.close();
+            break loop;
+          }
+        }
+      }
+      resolve(true);
+    });
+  }
+
   function closeTransports(p_id, c_id, inx) {
     return new Promise((resolve, reject) => {
       try {
@@ -121,7 +136,7 @@ const ms = (() => {
         let producer;
         loop: for (const transport of _router.transports) {
           for (const element of transport.list) {
-            if ((element.id == producerId)) {
+            if (element.id == producerId) {
               producer = element;
               break loop;
             }
@@ -135,13 +150,22 @@ const ms = (() => {
         clientConsumer.on("transportclose", () => {
           clientConsumer.close();
         });
+        clientConsumer.on("producerclose", () => {
+          clientConsumer.close();
+        });
+        clientConsumer.observer.on("close", () => {
+          console.log("Consumer Closed :> ID: " + clientConsumer.id);
+          transport.list = transport.list.filter(
+            (listElement) => listElement.id != clientConsumer.id
+          );
+        });
         transport.list.push(clientConsumer);
         console.log(
           "Consumer Created :> ID: " +
             clientConsumer.id +
             " Kind: " +
             clientConsumer.kind +
-            " Troducer_ID: " +
+            " Producer_ID: " +
             producerId +
             " Transport_ID: " +
             transport.transport.id
@@ -160,28 +184,33 @@ const ms = (() => {
     });
   }
 
-  function startProducing(socket, params, id,userId) {
+  function startProducing(socket, params, id, userId) {
     return new Promise(async (resolve, reject) => {
       try {
-        let transport;
         let clientProducer;
         loop: for (const worker of workers) {
           for (const router of worker.routers) {
             for (const element of router.transports) {
               if (element.transport.id == id) {
-                transport = element.transport;
+                let transport = element.transport;
                 clientProducer = await transport.produce(params);
                 clientProducer.on("transportclose", () => {
                   clientProducer.close();
                 });
-                clientProducer.appData.userId=userId;
+                clientProducer.observer.on("close", () => {
+                  console.log("Producer Closed :> ID: " + clientProducer.id);
+                  element.list = element.list.filter(
+                    (listElement) => listElement.id != clientProducer.id
+                  );
+                });
+                clientProducer.appData.userId = userId;
                 element.list.push(clientProducer);
                 console.log(
                   "Producer Created :> ID: " +
                     clientProducer.id +
                     " Kind: " +
                     clientProducer.kind +
-                    " Transport ID: " +
+                    " Transport_ID: " +
                     element.transport.id +
                     " Type: " +
                     clientProducer.appData.type
@@ -379,6 +408,7 @@ const ms = (() => {
     getProducers,
     closeTransports,
     rtcChannelMsData,
+    closeProducer,
   };
 })();
 

@@ -1,3 +1,4 @@
+console.log("Server is starting...",);
 import express from "express";
 import argon2 from "argon2";
 import cookieParser from "cookie-parser";
@@ -324,6 +325,8 @@ app.use(csrf());
           closeTransportsInxQueue.push(rtcInx);
           roomName = response.name;
         }
+        if (socket.rooms.has(response.name))
+          throw new Error("User already in the room.");
         socket.join(response.name);
         console.log("Client joined: " + response.name + " --> " + socket.id);
         callback("Connected to " + response.name);
@@ -478,6 +481,14 @@ app.use(csrf());
             callback(false);
           }
           break;
+        case "close-producer":
+          try {
+            callback(await ms.closeProducer(data.id, rtcInx));
+          } catch (err) {
+            console.log(err);
+            callback(false);
+          }
+          break;
       }
     });
 
@@ -496,5 +507,5 @@ app.use(csrf());
 })();
 
 httpServer.listen(port, () => {
-  console.log("http://localhost:" + port);
+  console.log("Server is listening to : http://localhost:" + port);
 });

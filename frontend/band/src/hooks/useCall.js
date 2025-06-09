@@ -10,7 +10,19 @@ export default function useCall(setConsumingStreams) {
   const consumeTransportIdRef = useRef();
   const produceTransportIdRef = useRef();
 
-  const getStatus = () => {};
+  const closeProduce = (inx, socket) => {
+    return new Promise(async (resolve, reject) => {
+      const response = await socket.emitWithAck("msServer", {
+        type: "close-producer",
+        id: producerRef.current[inx].id,
+      });
+      console.log(
+        "Producer Closed :> Type: " + producerRef.current[inx].appData.type
+      );
+      // if (response) producerRef.current.splice(inx, 1);
+      resolve();
+    });
+  };
 
   const waitNewProducers = (() => {
     let isInitialized = false;
@@ -266,5 +278,6 @@ export default function useCall(setConsumingStreams) {
     disconnect,
     isDisconnect,
     waitNewProducers,
+    closeProduce,
   ];
 }

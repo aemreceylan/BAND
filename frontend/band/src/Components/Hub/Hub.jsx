@@ -45,6 +45,7 @@ export default function Hub() {
     disconnect,
     getStreams,
     consumingStreams,
+    closeProduce,
   } = useContext(WSContext);
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
@@ -143,9 +144,12 @@ export default function Hub() {
           console.log(err);
         }
       })();
-    } else if (rtcMediaSettings.mic) {
-      if (rtcMediaSettings.mic.status) {
-      }
+    }
+    if (rtcMediaSettings.mic.info && !rtcMediaSettings.mic.status) {
+      closeProduce(rtcMediaSettings.mic.info.inx, socket);
+    }
+    if (rtcMediaSettings.cam.info && !rtcMediaSettings.cam.status) {
+      closeProduce(rtcMediaSettings.cam.info.inx, socket);
     }
   }, [rtcMediaSettings]);
 
@@ -156,7 +160,7 @@ export default function Hub() {
       if (streams.micAudioTest)
         micAudioRef.current.srcObject = streams.micAudioTest;
     }
-    if (streams.audio) {
+    if (streams.audio && !rtcMediaSettings.mic.status) {
       (async () => {
         const data = await publish(streams.audio, "audio");
         setRtcMediaSettings((prev) => ({
@@ -169,12 +173,12 @@ export default function Hub() {
         }));
       })();
     }
-    if (streams.cam) {
+    if (streams.cam && !rtcMediaSettings.cam.status) {
       (async () => {
         const data = await publish(streams.cam, "cam");
         setRtcMediaSettings((prev) => ({
           ...prev,
-          mic: {
+          cam: {
             ...prev.cam,
             info: data,
             status: true,
@@ -556,10 +560,20 @@ export default function Hub() {
                 <div
                   id="RTC-panel-content-main-buttons-up-cam"
                   onClick={async () => {
-                    const streamList = await getStreams(rtcMediaSettings, [
-                      "cam",
-                    ]);
-                    setStreams((prev) => ({ ...prev, ...streamList }));
+                    if (!rtcMediaSettings.cam.status) {
+                      const streamList = await getStreams(rtcMediaSettings, [
+                        "cam",
+                      ]);
+                      setStreams((prev) => ({ ...prev, ...streamList }));
+                    } else {
+                      setRtcMediaSettings((prev) => ({
+                        ...prev,
+                        cam: {
+                          ...prev.cam,
+                          status: false,
+                        },
+                      }));
+                    }
                   }}
                 >
                   {rtcMediaSettings.cam.status ? (
@@ -617,14 +631,21 @@ export default function Hub() {
               <div id="RTC-panel-content-main-buttons-down">
                 <div
                   id="RTC-panel-content-main-buttons-down-mic"
-                  onClick={() => {
-                    setRtcMediaSettings((prev) => ({
-                      ...prev,
-                      mic: {
-                        ...prev.mic,
-                        status: !prev.mic.status,
-                      },
-                    }));
+                  onClick={async () => {
+                    if (!rtcMediaSettings.mic.status) {
+                      const streamList = await getStreams(rtcMediaSettings, [
+                        "audio",
+                      ]);
+                      setStreams((prev) => ({ ...prev, ...streamList }));
+                    } else {
+                      setRtcMediaSettings((prev) => ({
+                        ...prev,
+                        mic: {
+                          ...prev.mic,
+                          status: false,
+                        },
+                      }));
+                    }
                   }}
                 >
                   {rtcMediaSettings.mic.status ? (
