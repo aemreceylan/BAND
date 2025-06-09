@@ -1,0 +1,46 @@
+.rtcScreen-streamRow {
+  margin-bottom: 1em;
+  width: 100%;
+}
+
+#rtc-screen-container-no_broadcast {
+  width: 100%;
+  text-align: center;
+}
+
+#rtc-screen-container-no_broadcast span {
+  color: white;
+  text-align: center;
+  display: block;
+}
+
+#rtc-screen-container-no_broadcast img {
+  width: 50%;
+}
+
+.rtc-screen-container-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1rem 0;
+  color: var(--dark-font-medium-gray);
+}
+
+.rtc-screen-container-divider::before,
+.rtc-screen-container-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--dark-font-medium-gray);
+  margin: 0 1rem;
+}
+
+#rtc-screen-container-rtcVideoFullScreen-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#rtc-screen-container-rtcVideoFullScreen {
+  width: 80%;
+  aspect-ratio: 16/9;
+}

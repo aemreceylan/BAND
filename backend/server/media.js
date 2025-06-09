@@ -14,16 +14,21 @@ const ms = (() => {
 
   function closeProducer(id, rtcInx) {
     return new Promise(async (resolve, reject) => {
-      loop: for (const transport of workers[rtcInx[0]].routers[rtcInx[1]]
-        .transports) {
-        for (const element of transport.list) {
-          if (element.id == id) {
-            element.close();
-            break loop;
+      try {
+        for (const transport of workers[rtcInx[0]].routers[rtcInx[1]]
+          .transports) {
+          for (const element of transport.list) {
+            if (element.id == id) {
+              element.close();
+              resolve(true);
+              return;
+            }
           }
         }
+        throw new Error("Producer not found");
+      } catch (err) {
+        reject(err);
       }
-      resolve(true);
     });
   }
 
@@ -199,6 +204,10 @@ const ms = (() => {
                 });
                 clientProducer.observer.on("close", () => {
                   console.log("Producer Closed :> ID: " + clientProducer.id);
+                  socket.emit(
+                    "msServer-producerClosed",
+                    clientProducer.appData
+                  );
                   element.list = element.list.filter(
                     (listElement) => listElement.id != clientProducer.id
                   );

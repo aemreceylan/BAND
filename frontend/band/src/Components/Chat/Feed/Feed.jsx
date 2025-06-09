@@ -3,7 +3,7 @@ import "./Feed.css";
 import { useContext, useEffect, useRef, useState } from "react";
 import { WSContext } from "../../../Contexts/WSProvider";
 import useFetch from "../../../hooks/useFetch";
-import RtcScreen from "./RTC/RtcScreen";
+import RtcScreen from "./RtcScreen/RtcScreen";
 
 export default function Feed() {
   const feedRef = useRef();

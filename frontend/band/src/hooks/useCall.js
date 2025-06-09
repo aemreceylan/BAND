@@ -1,51 +1,66 @@
 import * as mediasoup from "mediasoup-client";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 
 export default function useCall(setConsumingStreams) {
   const deviceRef = useRef();
   const produceTransportRef = useRef();
-  const producerRef = useRef([]);
+  const producerRef = useRef(new Map());
   const consumeTransportRef = useRef();
-  const consumerRef = useRef([]);
+  const consumerRef = useRef(new Map());
   const consumeTransportIdRef = useRef();
   const produceTransportIdRef = useRef();
 
-  const closeProduce = (inx, socket) => {
+  const closeProduce = useCallback((key, socket) => {
     return new Promise(async (resolve, reject) => {
       const response = await socket.emitWithAck("msServer", {
         type: "close-producer",
-        id: producerRef.current[inx].id,
+        id: producerRef.current.get(key).id,
       });
-      console.log(
-        "Producer Closed :> Type: " + producerRef.current[inx].appData.type
-      );
-      // if (response) producerRef.current.splice(inx, 1);
+
+      if (response) {
+        console.log(
+          "Producer Closed :> Type: " +
+            producerRef.current.get(key).appData.type
+        );
+        producerRef.current.delete(key);
+      }
       resolve();
     });
-  };
+  }, []);
 
-  const waitNewProducers = (() => {
-    let isInitialized = false;
+  const waitNewProducers = useCallback(
+    (() => {
+      let isInitialized = false;
 
-    return (socket) => {
-      if (isInitialized) return;
-      isInitialized = true;
+      return (socket) => {
+        if (isInitialized) return;
+        isInitialized = true;
+        socket.on("msServer-newProducer", (data) => {
+          console.log("New produce:> " + data);
+          consumeStream(socket, data);
+        });
+        socket.on("msServer-producerClosed", (data) => {
+          console.log("A user has closed their connection:> " + data.type);
+          setConsumingStreams((prev) => ({
+            ...prev,
+            [data.type]: prev[data.type].filter(
+              (element) => element.userId != data.userId
+            ),
+          }));
+        });
+      };
+    })(),
+    []
+  );
 
-      socket.on("msServer-newProducer", (data) => {
-        console.log("User joined:> " + data);
-        consumeStream(socket, data);
-      });
-    };
-  })();
-
-  const isDisconnect = () => {
+  const isDisconnect = useCallback(() => {
     return (
       produceTransportRef.current === null ||
       consumeTransportRef.current === null
     );
-  };
+  });
 
-  const disconnect = (socket) => {
+  const disconnect = useCallback((socket) => {
     return new Promise(async (resolve, reject) => {
       const response = await socket.emitWithAck("msServer", {
         type: "close-transports",
@@ -59,19 +74,19 @@ export default function useCall(setConsumingStreams) {
       consumeTransportRef.current = null;
       consumeTransportIdRef.current = null;
       produceTransportIdRef.current = null;
-      producerRef.current = [];
-      consumerRef.current = [];
+      producerRef.current.clear();
+      consumerRef.current.clear();
       resolve();
     });
-  };
+  }, []);
 
-  const setupAudio = (socket, index, userId) => {
+  const setupAudio = useCallback((socket, key, userId) => {
     return new Promise(async (resolve, reject) => {
-      const { track } = consumerRef.current[index];
+      const { track } = consumerRef.current.get(key);
       const stream = new MediaStream([track]);
       await socket.emitWithAck("msServer", {
         type: "unpause-consumer",
-        id: consumerRef.current[index].id,
+        id: consumerRef.current.get(key).id,
       });
       setConsumingStreams((prev) => ({
         ...prev,
@@ -79,15 +94,15 @@ export default function useCall(setConsumingStreams) {
       }));
       resolve();
     });
-  };
+  }, []);
 
-  const setupCam = (socket, index, userId) => {
+  const setupCam = useCallback((socket, key, userId) => {
     return new Promise(async (resolve, reject) => {
-      const { track } = consumerRef.current[index];
+      const { track } = consumerRef.current.get(key);
       const stream = new MediaStream([track]);
       await socket.emitWithAck("msServer", {
         type: "unpause-consumer",
-        id: consumerRef.current[index].id,
+        id: consumerRef.current.get(key).id,
       });
       setConsumingStreams((prev) => ({
         ...prev,
@@ -95,9 +110,9 @@ export default function useCall(setConsumingStreams) {
       }));
       resolve();
     });
-  };
+  }, []);
 
-  const setConsumers = (socket) => {
+  const setConsumers = useCallback((socket) => {
     return new Promise(async (resolve, reject) => {
       const response = await socket.emitWithAck("msServer", {
         type: "get-producer-list",
@@ -108,9 +123,9 @@ export default function useCall(setConsumingStreams) {
       });
       resolve();
     });
-  };
+  }, []);
 
-  const init = (socket) => {
+  const init = useCallback((socket) => {
     return new Promise(async (resolve, reject) => {
       deviceRef.current = new mediasoup.Device();
       const rtpCap = await socket.emitWithAck("msServer", {
@@ -119,9 +134,9 @@ export default function useCall(setConsumingStreams) {
       await deviceRef.current.load({ routerRtpCapabilities: rtpCap });
       resolve();
     });
-  };
+  }, []);
 
-  const getStreams = (devices, types) => {
+  const getStreams = useCallback((devices, types) => {
     return new Promise(async (resolve, reject) => {
       const streams = {};
       if (devices.mic.id && types.includes("audio")) {
@@ -144,11 +159,23 @@ export default function useCall(setConsumingStreams) {
         });
         streams.cam = camStream;
       }
+      if (devices.screen.id && types.includes("screen")) {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            cursor: "always",
+            frameRate: { ideal: 30, max: 60 },
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 },
+          },
+          audio: true,
+        });
+        streams.screen = screenStream;
+      }
       resolve(streams);
     });
-  };
+  }, []);
 
-  const createProducer = (socket) => {
+  const createProducer = useCallback((socket) => {
     return new Promise(async (resolve, reject) => {
       const transport_params = await socket.emitWithAck("msServer", {
         type: "create-producer-transport",
@@ -192,22 +219,21 @@ export default function useCall(setConsumingStreams) {
       );
       resolve();
     });
-  };
+  }, []);
 
-  const publish = (stream, _type) => {
+  const publish = useCallback((stream, _type) => {
     return new Promise(async (resolve, reject) => {
       const track = stream.getTracks()[0];
-      producerRef.current.push(
-        await produceTransportRef.current.produce({
-          track,
-          appData: { type: _type },
-        })
-      );
-      resolve({ type: _type, inx: producerRef.current.length - 1 });
+      const producer = await produceTransportRef.current.produce({
+        track,
+        appData: { type: _type },
+      });
+      producerRef.current.set(producer.id, producer);
+      resolve({ type: _type, key: producer.id });
     });
-  };
+  }, []);
 
-  const createConsumer = async (socket) => {
+  const createConsumer = useCallback(async (socket) => {
     return new Promise(async (resolve, reject) => {
       const transport_params = await socket.emitWithAck("msServer", {
         type: "create-consumer-transport",
@@ -234,9 +260,9 @@ export default function useCall(setConsumingStreams) {
       );
       resolve();
     });
-  };
+  }, []);
 
-  const consumeStream = async (socket, producerId) => {
+  const consumeStream = useCallback((socket, producerId) => {
     return new Promise(async (resolve, reject) => {
       const consumer_params = await socket.emitWithAck("msServer", {
         type: "consume-media",
@@ -245,28 +271,19 @@ export default function useCall(setConsumingStreams) {
         p_id: producerId,
       });
       if (consumer_params) {
-        consumerRef.current.push(
-          await consumeTransportRef.current.consume(consumer_params)
+        const consumer = await consumeTransportRef.current.consume(
+          consumer_params
         );
+        consumerRef.current.set(consumer.id, consumer);
         if (consumer_params.appData.type == "audio")
-          setupAudio(
-            socket,
-            consumerRef.current.length - 1,
-            consumer_params.appData.userId
-          );
+          setupAudio(socket, consumer.id, consumer_params.appData.userId);
         else if (consumer_params.appData.type == "cam")
-          setupCam(
-            socket,
-            consumerRef.current.length - 1,
-            consumer_params.appData.userId
-          );
+          setupCam(socket, consumer.id, consumer_params.appData.userId);
+        console.log("Consuming:" + consumerRef.current.get(consumer.id).id);
       }
-      console.log(
-        "Consuming:" + consumerRef.current[consumerRef.current.length - 1].id
-      );
       resolve();
     });
-  };
+  }, []);
 
   return [
     init,

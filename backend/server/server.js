@@ -262,7 +262,7 @@ app.use(csrf());
       });
     }
     function emitList() {
-      io.emit("userList", Array.from(list.values()));
+      io.emit("userList", Array.from(list.entries()));
     }
     return {
       getUsersFromDB,
@@ -507,5 +507,5 @@ app.use(csrf());
 })();
 
 httpServer.listen(port, () => {
-  console.log("Server is listening to : http://localhost:" + port);
+  console.log("Server address : http://localhost:" + port);
 });

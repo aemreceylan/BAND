@@ -25,10 +25,10 @@ export default function WSProvider({ children }) {
     name: "",
   });
   const [rtcMediaSettings, setRtcMediaSettings] = useState({
-    mic: { status: false },
-    cam: { status: false },
-    screen: { status: false },
-    listen: { status: true },
+    mic: { open: false, status: false },
+    cam: { open: false, status: false },
+    screen: { open: false, status: false },
+    listen: { open: true, status: true },
   });
   const [streams, setStreams] = useState({});
   const [consumingStreams, setConsumingStreams] = useState({
@@ -95,6 +95,20 @@ export default function WSProvider({ children }) {
           if (!isDisconnect()) {
             console.log("Switching room");
             await disconnect(socket);
+            setStreams({});
+            setRtcMediaSettings((prev) => ({
+              ...prev,
+              mic: { id: prev.mic.id, open: false, status: false },
+            }));
+            setRtcMediaSettings((prev) => ({
+              ...prev,
+              cam: { id: prev.cam.id, open: false, status: false },
+            }));
+            setConsumingStreams({
+              audio: [],
+              cam: [],
+              screen: [],
+            });
           }
           await callInit(socket);
           await setProducerTransport(socket);
@@ -147,7 +161,7 @@ export default function WSProvider({ children }) {
         console.log(message);
       });
       socket.on("userList", (data) => {
-        setUserList(data);
+        setUserList(new Map(data));
       });
       socket.on("sectionList", (data) => {
         setSectionList(JSON.parse(data));

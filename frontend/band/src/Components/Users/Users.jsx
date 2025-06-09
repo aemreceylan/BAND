@@ -11,12 +11,14 @@ export default function Users() {
   const [offlineList, setOfflineList] = useState([]);
 
   useEffect(() => {
-    setOnlineList([]);
-    setOfflineList([]);
-    userList?.forEach((element) => {
-      if (element.isOnline) setOnlineList((prev) => [...prev, element]);
-      else setOfflineList((prev) => [...prev, element]);
-    });
+    if (userList) {
+      setOnlineList([]);
+      setOfflineList([]);
+      Array.from(userList.values())?.forEach((element) => {
+        if (element.isOnline) setOnlineList((prev) => [...prev, element]);
+        else setOfflineList((prev) => [...prev, element]);
+      });
+    }
   }, [userList]);
 
   return (
@@ -69,8 +71,9 @@ export default function Users() {
               <span>Çevrimiçi - {onlineList.length}</span>
             </div>
             <div className="user-list-category-list">
-              {onlineList?.map((element,index) => {
-                if (element.isOnline) return <UsersElement key={index} data={element} />;
+              {onlineList?.map((element, index) => {
+                if (element.isOnline)
+                  return <UsersElement key={index} data={element} />;
               })}
             </div>
           </div>
@@ -79,8 +82,9 @@ export default function Users() {
               <span>Çevrimdışı - {offlineList.length}</span>
             </div>
             <div className="user-list-category-list">
-              {offlineList?.map((element,index) => {
-                if (!element.isOnline) return <UsersElement key={index} data={element} />;
+              {offlineList?.map((element, index) => {
+                if (!element.isOnline)
+                  return <UsersElement key={index} data={element} />;
               })}
             </div>
           </div>
