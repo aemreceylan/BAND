@@ -15,6 +15,9 @@ const messageSchema = new mongoose.Schema({
     ref: "Channel",
     required: true,
   },
+  file: {
+    type: String,
+  },
   timestamp: { type: Date, default: Date.now },
 });
 

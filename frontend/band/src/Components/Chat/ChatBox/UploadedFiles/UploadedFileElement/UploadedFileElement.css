@@ -1,0 +1,4 @@
+.uploadedFile-element-info{
+    display: flex;
+    color: var(--dark-font-light-gray);
+    gap: 2rem;
