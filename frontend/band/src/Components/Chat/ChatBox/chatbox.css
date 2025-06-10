@@ -1,11 +1,18 @@
+#chatbox-container {
+  width: 100%;
+  flex-shrink: 0;
+  flex-basis: 4rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 -5px 5px rgba(0, 0, 0, 0.3); /* Daha belirgin ve yumuşak gölge */
+}
+
 #chatbox {
-  position: absolute;
   height: 3rem;
   width: 90%;
   background-color: var(--dark-background-light-gray);
-  left: 50%;
-  bottom: 1rem;
-  transform: translateX(-50%);
   border: 0.1rem solid var(--dark-background-dark-gray);
   border-radius: 1rem;
   overflow: hidden;

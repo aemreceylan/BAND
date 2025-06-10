@@ -14,17 +14,9 @@ export default function App() {
 
   useEffect(() => {
     document.addEventListener("contextmenu", (e) => e.preventDefault());
+    if (!localStorage.getItem("categoryIsOpen"))
+      localStorage.setItem("categoryIsOpen", "{}");
   }, []);
-
-  // useEffect(() => {
-  //   if (streams) {
-  //     if (streams.cam) streamListRef.current.push(streams.cam);
-  //     if (streams.screen) streamListRef.current.push(streams.screen);
-  //   }
-  // }, [streams]);
-
-  // const streamListRef = useRef([]);
-
   return (
     <>
       {login ? (

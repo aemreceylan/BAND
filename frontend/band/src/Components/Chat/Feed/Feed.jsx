@@ -8,13 +8,39 @@ import RtcScreen from "./RtcScreen/RtcScreen";
 export default function Feed() {
   const feedRef = useRef();
   const messageAmountRef = useRef(25);
-  const scrollData = useRef({});
+  const scrollData = useRef();
   const { selectedChannel, socket, rtcScreen, setRtcScreen } =
     useContext(WSContext);
   const [feedContentRequest, feedContentRequestData, feedContentLoading] =
     useFetch();
   const [messages, setMessages] = useState({});
   const [isMessagesEnd, setIsMessagesEnd] = useState({});
+  const [scrollTopData, setScrollTopData] = useState({});
+  const [inChatBottom, setInChatBottom] = useState();
+
+  useEffect(() => {
+    if (inChatBottom) {
+      feedRef.current.scrollTop = feedRef.current.scrollHeight;
+    } else if (scrollData.current) {
+      feedRef.current.scrollTop =
+        feedRef.current.scrollHeight - scrollData.current;
+      scrollData.current = null;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (scrollTopData[selectedChannel.id]) {
+      if (
+        feedRef.current.scrollHeight - scrollTopData[selectedChannel.id] <=
+        feedRef.current.offsetHeight +
+          parseInt(window.getComputedStyle(feedRef.current).fontSize)
+      ) {
+        setInChatBottom(true);
+      } else {
+        setInChatBottom(false);
+      }
+    }
+  }, [scrollTopData]);
 
   useEffect(() => {
     if (selectedChannel.id) {
@@ -35,6 +61,7 @@ export default function Feed() {
           }),
         });
       }
+      feedRef.current.scrollTop = scrollTopData[selectedChannel.id];
       socket.emit("joinChannel", selectedChannel.id, (data) => {
         console.log(data);
       });
@@ -49,7 +76,7 @@ export default function Feed() {
           setIsMessagesEnd((prev) => ({ ...prev, [selectedChannel.id]: true }));
         }
         if (feedContentRequestData.data.length > 0) {
-          scrollData.current[selectedChannel.id] = feedRef.current.scrollHeight;
+          scrollData.current = feedRef.current.scrollHeight;
           setMessages((prev) => ({
             ...prev,
             [feedContentRequestData.data[0].channel._id]: [
@@ -57,11 +84,6 @@ export default function Feed() {
               ...prev[feedContentRequestData.data[0].channel._id],
             ],
           }));
-          setTimeout(() => {
-            feedRef.current.scrollTop =
-              feedRef.current.scrollHeight -
-              scrollData.current[selectedChannel.id];
-          }, 0);
         }
       } else {
         console.log(feedContentRequestData.msg);
@@ -107,6 +129,10 @@ export default function Feed() {
               }),
             });
           }
+          setScrollTopData((prev) => ({
+            ...prev,
+            [selectedChannel.id]: e.target.scrollTop,
+          }));
         }}
       >
         {!rtcScreen && feedContentLoading && <span className="loader"></span>}

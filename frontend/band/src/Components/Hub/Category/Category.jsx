@@ -1,9 +1,28 @@
 import Channel from "./Channel/Channel";
 import "./Category.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Category({ data }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(() => {
+    if (localStorage.getItem("categoryIsOpen")) {
+      const categoryIsOpen = JSON.parse(localStorage.getItem("categoryIsOpen"));
+      if (categoryIsOpen[data.name]) return categoryIsOpen[data.name];
+      else {
+        categoryIsOpen[data.name] = false;
+        localStorage.setItem("categoryIsOpen", JSON.stringify(categoryIsOpen));
+        return false;
+      }
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem(
+      "categoryIsOpen",
+      JSON.stringify({
+        ...JSON.parse(localStorage.getItem("categoryIsOpen")),
+        [data.name]: isOpen,
+      })
+    );
+  }, [isOpen]);
   return (
     <>
       <div className="hub-category">
@@ -41,7 +60,7 @@ export default function Category({ data }) {
                 />
               </svg>
             )}
-            {" "+data.name}
+            {" " + data.name}
           </span>
         </div>
         <div
@@ -51,7 +70,7 @@ export default function Category({ data }) {
               : "hub-category-channelList-close"
           }
         >
-          {data.channels?.map((element,index) => {
+          {data.channels?.map((element, index) => {
             return <Channel key={index} data={element} />;
           })}
         </div>
