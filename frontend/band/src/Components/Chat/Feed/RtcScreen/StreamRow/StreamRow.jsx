@@ -5,7 +5,6 @@ export default function StreamRow({ streams, setRtcVideoFullScreen }) {
     <>
       <div className="rtcScreen-streamRow">
         {streams?.map((element, i) => {
-          console.log(element.stream)
           if (element.stream.getVideoTracks().length!=0)
             return (
               <Video

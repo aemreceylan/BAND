@@ -43,7 +43,6 @@ export default function Hub() {
     publish,
     socket,
     disconnect,
-    isDisconnect,
     getStreams,
     consumingStreams,
     closeProduce,
