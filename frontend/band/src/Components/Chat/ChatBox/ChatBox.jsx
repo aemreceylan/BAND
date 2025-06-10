@@ -11,7 +11,10 @@ export default function ChatBox() {
   return (
     <>
       <div id="chatbox-container">
-        <UploadedFiles uploadedFiles={uploadedFiles} />
+        <UploadedFiles
+          setUploadedFiles={setUploadedFiles}
+          uploadedFiles={uploadedFiles}
+        />
         <div id="chatbox">
           <div
             id="chatbox-textarea"
@@ -34,20 +37,30 @@ export default function ChatBox() {
               ref={textareaRef}
               name="text"
               onKeyDown={(e) => {
-                if (e.key == "Enter" && !e.shiftKey) {
-                  socket.emit(
-                    "newMessageFromClient",
-                    JSON.stringify({
-                      authToken: authToken,
-                      text: textareaRef.current.value,
-                      channelId: selectedChannel.id,
-                      channelName: selectedChannel.name,
-                    }),
-                    (data) => {
-                      console.log(data);
+                (async () => {
+                  if (e.key == "Enter" && !e.shiftKey) {
+                    const filesArray = [];
+                    for (let i of uploadedFiles) {
+                      filesArray.push(await i.arrayBuffer());
                     }
-                  );
-                }
+                    console.log(filesArray);
+                    filesArray.forEach((element, i) => {
+                      socket.emit(
+                        "newMessageFromClient",
+                        {
+                          authToken: authToken,
+                          text: textareaRef.current.value,
+                          channelId: selectedChannel.id,
+                          channelName: selectedChannel.name,
+                          file: filesArray[i],
+                        },
+                        (data) => {
+                          console.log(data);
+                        }
+                      );
+                    });
+                  }
+                })();
               }}
               onKeyUp={(e) => {
                 if (e.key == "Enter" && !e.shiftKey) {

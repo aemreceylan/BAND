@@ -1,4 +1,4 @@
-console.log("Server is starting...",);
+console.log("Server is starting...");
 import express from "express";
 import argon2 from "argon2";
 import cookieParser from "cookie-parser";
@@ -25,6 +25,7 @@ const io = new Server(httpServer, {
     origin: "http://localhost:5173",
     methods: ["POST", "GET"],
     credentials: true,
+    maxHttpBufferSize: 1e8,
   },
 });
 
@@ -358,10 +359,11 @@ app.use(csrf());
 
     socket.on("newMessageFromClient", async (data, callback) => {
       try {
-        data = JSON.parse(data);
         data.userId = jwt.verify(data.authToken, "abc123").id;
         delete data.authToken;
-        const response = await db.newMessage(data);
+        console.log(data);
+        const{file,...others} =data;
+        const response = await db.newMessage(others);
         io.to(data.channelName).emit(
           "newMessageFromServer",
           JSON.stringify(response)

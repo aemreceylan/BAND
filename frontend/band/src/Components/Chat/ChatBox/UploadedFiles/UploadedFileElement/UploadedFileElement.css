@@ -1,4 +1,39 @@
-.uploadedFile-element-info{
-    display: flex;
-    color: var(--dark-font-light-gray);
-    gap: 2rem;
+.uploadedFile-element {
+  height: 10rem;
+  width: 10rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid var(--dark-font-medium-gray);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  background-color: var(--dark-background-dark-gray);
+  transition: transform 0.3s ease, box-shadow 0.3s ease; 
+}
+
+.uploadedFile-element:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.uploadedFile-element-info {
+  display: flex;
+  color: var(--dark-font-light-gray);
+  font-size: 0.8rem;
+  justify-content: space-around;
+  gap: 1rem;
+}
+
+.uploadedFile-element-img {
+  color: var(--dark-font-light-gray);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploadedFile-element-img svg {
+  width: 60%;
+  height: 60%;
+}

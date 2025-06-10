@@ -7,7 +7,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 -5px 5px rgba(0, 0, 0, 0.3); /* Daha belirgin ve yumuşak gölge */
+  box-shadow: 0 -5px 5px rgba(0, 0, 0, 0.3);
 }
 
 #chatbox {
