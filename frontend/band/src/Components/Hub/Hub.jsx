@@ -47,6 +47,7 @@ export default function Hub() {
     getStreams,
     consumingStreams,
     closeProduce,
+    setConsumingStreams,
   } = useContext(WSContext);
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
@@ -152,7 +153,9 @@ export default function Hub() {
       rtcMediaSettings.mic.status
     ) {
       (async () => {
-        await closeProduce(rtcMediaSettings.mic.info.key, socket);
+        rtcMediaSettings.mic.info.keys.forEach(async (key) => {
+          await closeProduce(key, socket);
+        });
         setRtcMediaSettings((prev) => {
           const temp = { ...prev.mic };
           delete temp.info;
@@ -172,7 +175,9 @@ export default function Hub() {
       rtcMediaSettings.cam.status
     ) {
       (async () => {
-        await closeProduce(rtcMediaSettings.cam.info.key, socket);
+        rtcMediaSettings.cam.info.keys.forEach(async (key) => {
+          await closeProduce(key, socket);
+        });
         setRtcMediaSettings((prev) => {
           const temp = { ...prev.cam };
           delete temp.info;
@@ -192,18 +197,20 @@ export default function Hub() {
       rtcMediaSettings.screen.status
     ) {
       (async () => {
-        await closeProduce(rtcMediaSettings.cam.info.key, socket);
+        rtcMediaSettings.screen.info.keys.forEach(async (key) => {
+          await closeProduce(key, socket);
+        });
         setRtcMediaSettings((prev) => {
-          const temp = { ...prev.cam };
+          const temp = { ...prev.screen };
           delete temp.info;
-          return { ...prev, cam: temp };
+          return { ...prev, screen: temp };
         });
         setStreams((prev) => {
           const temp = { ...prev };
-          delete temp.cam;
+          delete temp.screen;
           return temp;
         });
-        rtcMediaSettings.cam.status = false;
+        rtcMediaSettings.screen.status = false;
       })();
     }
   }, [rtcMediaSettings]);
@@ -247,6 +254,23 @@ export default function Hub() {
           ...prev,
           cam: {
             ...prev.cam,
+            info: data,
+            status: true,
+          },
+        }));
+      })();
+    }
+    if (
+      streams.screen &&
+      rtcMediaSettings.screen.open &&
+      !rtcMediaSettings.screen.status
+    ) {
+      (async () => {
+        const data = await publish(streams.screen, "screen");
+        setRtcMediaSettings((prev) => ({
+          ...prev,
+          screen: {
+            ...prev.screen,
             info: data,
             status: true,
           },
@@ -817,7 +841,27 @@ export default function Hub() {
                       ...prev,
                       isConnected: false,
                     }));
-                    disconnect(socket);
+                    (async () => {
+                      await disconnect(socket);
+                      setStreams({});
+                      setRtcMediaSettings((prev) => ({
+                        ...prev,
+                        mic: { id: prev.mic.id, open: false, status: false },
+                      }));
+                      setRtcMediaSettings((prev) => ({
+                        ...prev,
+                        cam: { id: prev.cam.id, open: false, status: false },
+                      }));
+                      setRtcMediaSettings((prev) => ({
+                        ...prev,
+                        screen: { id: null, open: false, status: false },
+                      }));
+                      setConsumingStreams({
+                        audio: [],
+                        cam: [],
+                        screen: [],
+                      });
+                    })();
                   }}
                 >
                   <svg

@@ -1,7 +1,8 @@
 import * as mediasoup from "mediasoup-client";
+import { useContext } from "react";
 import { useCallback, useRef } from "react";
 
-export default function useCall(setConsumingStreams) {
+export default function useCall(setConsumingStreams, setRtcMediaSettings) {
   const deviceRef = useRef();
   const produceTransportRef = useRef();
   const producerRef = useRef(new Map());
@@ -112,6 +113,22 @@ export default function useCall(setConsumingStreams) {
     });
   }, []);
 
+  const setupScreen = useCallback((socket, key, userId) => {
+    return new Promise(async (resolve, reject) => {
+      const { track } = consumerRef.current.get(key);
+      const stream = new MediaStream([track]);
+      await socket.emitWithAck("msServer", {
+        type: "unpause-consumer",
+        id: consumerRef.current.get(key).id,
+      });
+      setConsumingStreams((prev) => ({
+        ...prev,
+        screen: [...prev.screen, { stream, userId }],
+      }));
+      resolve();
+    });
+  }, []);
+
   const setConsumers = useCallback((socket) => {
     return new Promise(async (resolve, reject) => {
       const response = await socket.emitWithAck("msServer", {
@@ -159,7 +176,7 @@ export default function useCall(setConsumingStreams) {
         });
         streams.cam = camStream;
       }
-      if (devices.screen.id && types.includes("screen")) {
+      if (types.includes("screen")) {
         const screenStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
             cursor: "always",
@@ -169,6 +186,15 @@ export default function useCall(setConsumingStreams) {
           },
           audio: true,
         });
+        screenStream.getVideoTracks()[0].onended = () => {
+          setRtcMediaSettings((prev) => ({
+            ...prev,
+            screen: {
+              ...prev.screen,
+              open: false,
+            },
+          }));
+        };
         streams.screen = screenStream;
       }
       resolve(streams);
@@ -223,13 +249,17 @@ export default function useCall(setConsumingStreams) {
 
   const publish = useCallback((stream, _type) => {
     return new Promise(async (resolve, reject) => {
-      const track = stream.getTracks()[0];
-      const producer = await produceTransportRef.current.produce({
-        track,
-        appData: { type: _type },
+      const tracks = stream.getTracks();
+      const producers = [];
+      tracks.forEach(async (track) => {
+        const producer = await produceTransportRef.current.produce({
+          track,
+          appData: { type: _type },
+        });
+        producers.push(producer);
+        producerRef.current.set(producer.id, producer);
       });
-      producerRef.current.set(producer.id, producer);
-      resolve({ type: _type, key: producer.id });
+      resolve({ type: _type, keys: producers.map((element) => element.id) });
     });
   }, []);
 
@@ -279,6 +309,8 @@ export default function useCall(setConsumingStreams) {
           setupAudio(socket, consumer.id, consumer_params.appData.userId);
         else if (consumer_params.appData.type == "cam")
           setupCam(socket, consumer.id, consumer_params.appData.userId);
+        else if (consumer_params.appData.type == "screen")
+          setupScreen(socket, consumer.id, consumer_params.appData.userId);
         console.log("Consuming:" + consumerRef.current.get(consumer.id).id);
       }
       resolve();

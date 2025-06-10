@@ -51,7 +51,7 @@ export default function WSProvider({ children }) {
     isDisconnect,
     waitNewProducers,
     closeProduce,
-  ] = useCall(setConsumingStreams);
+  ] = useCall(setConsumingStreams, setRtcMediaSettings);
 
   useEffect(() => {
     isAuthRequest({ url: "session-check" });
@@ -103,6 +103,10 @@ export default function WSProvider({ children }) {
             setRtcMediaSettings((prev) => ({
               ...prev,
               cam: { id: prev.cam.id, open: false, status: false },
+            }));
+            setRtcMediaSettings((prev) => ({
+              ...prev,
+              screen: { id: null, open: false, status: false },
             }));
             setConsumingStreams({
               audio: [],
@@ -206,6 +210,7 @@ export default function WSProvider({ children }) {
     disconnect,
     isDisconnect,
     consumingStreams,
+    setConsumingStreams,
     getStreams,
     rtcScreen,
     setRtcScreen,

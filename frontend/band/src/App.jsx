@@ -8,7 +8,6 @@ import "./App.css";
 import { useContext, useEffect } from "react";
 import LoginSignup from "./Components/LoginSignup/LoginSignUp";
 import { WSContext } from "./Contexts/WSProvider";
-
 export default function App() {
   useEffect(() => {
     document.addEventListener("contextmenu", (e) => e.preventDefault());
