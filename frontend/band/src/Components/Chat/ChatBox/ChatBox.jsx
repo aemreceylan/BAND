@@ -8,6 +8,23 @@ export default function ChatBox() {
   const textareaRef = useRef();
   const fileUploadRef = useRef();
   const [uploadedFiles, setUploadedFiles] = useState([]);
+
+  function emitMessage(send_data) {
+    socket.emit(
+      "newMessageFromClient",
+      {
+        authToken: authToken,
+        text: textareaRef.current.value,
+        channelId: selectedChannel.id,
+        channelName: selectedChannel.name,
+        ...send_data,
+      },
+      (data) => {
+        console.log(data);
+      }
+    );
+  }
+
   return (
     <>
       <div id="chatbox-container">
@@ -39,26 +56,14 @@ export default function ChatBox() {
               onKeyDown={(e) => {
                 (async () => {
                   if (e.key == "Enter" && !e.shiftKey) {
-                    const filesArray = [];
-                    for (let i of uploadedFiles) {
-                      filesArray.push(await i.arrayBuffer());
-                    }
-                    console.log(filesArray);
-                    filesArray.forEach((element, i) => {
-                      socket.emit(
-                        "newMessageFromClient",
-                        {
-                          authToken: authToken,
-                          text: textareaRef.current.value,
-                          channelId: selectedChannel.id,
-                          channelName: selectedChannel.name,
-                          file: filesArray[i],
-                        },
-                        (data) => {
-                          console.log(data);
-                        }
-                      );
-                    });
+                    if (uploadedFiles.length > 0)
+                      for (let i of uploadedFiles) {
+                        emitMessage({
+                          file: await i.arrayBuffer(),
+                          file_name: i.name,
+                        });
+                      }
+                    else emitMessage({});
                   }
                 })();
               }}
@@ -84,19 +89,18 @@ export default function ChatBox() {
               <div
                 id="chatbox-buttons-send"
                 onClick={() => {
-                  socket.emit(
-                    "newMessageFromClient",
-                    JSON.stringify({
-                      authToken: authToken,
-                      text: textareaRef.current.value,
-                      channelId: selectedChannel.id,
-                      channelName: selectedChannel.name,
-                    }),
-                    (data) => {
-                      console.log(data);
-                    }
-                  );
-                  textareaRef.current.value = "";
+                  (async () => {
+                    if (uploadedFiles.length > 0)
+                      for (let i of uploadedFiles) {
+                        emitMessage({
+                          file: await i.arrayBuffer(),
+                          file_name: i.name,
+                        });
+                      }
+                    else emitMessage({});
+                    textareaRef.current.value = "";
+                    textareaRef.current.focus();
+                  })();
                 }}
               >
                 <svg

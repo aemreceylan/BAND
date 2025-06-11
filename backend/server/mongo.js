@@ -4,6 +4,8 @@ import Channel from "./models/Channel.js";
 import Category from "./models/Category.js";
 import Message from "./models/Message.js";
 
+import { setFile } from "./server.js";
+
 async function init() {
   try {
     await mongoose.connect("mongodb://localhost:27017/bandDB");
@@ -82,11 +84,18 @@ function createCategory(data) {
 
 function newMessage(data) {
   return new Promise(async (resolve, reject) => {
-    const newMessage = new Message({
+    const query = {
       text: data.text,
       sender: data.userId,
       channel: data.channelId,
-    });
+    };
+    if (data.file) {
+      query.file = [
+        await setFile(data.file, "assets/client_uploads", data.file_name),
+        data.file_name,
+      ];
+    }
+    const newMessage = new Message(query);
     try {
       if ((await Channel.findById(data.channelId)).type != 0) throw new Error();
       const response = await newMessage.save();

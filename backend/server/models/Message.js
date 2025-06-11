@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const messageSchema = new mongoose.Schema({
   text: {
     type: String,
-    required: true,
   },
   sender: {
     type: mongoose.Schema.Types.ObjectId,
@@ -16,7 +15,7 @@ const messageSchema = new mongoose.Schema({
     required: true,
   },
   file: {
-    type: String,
+    type: [String],
   },
   timestamp: { type: Date, default: Date.now },
 });

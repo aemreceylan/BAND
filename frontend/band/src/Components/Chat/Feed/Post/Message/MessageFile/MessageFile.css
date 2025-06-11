@@ -1,0 +1,19 @@
+.messageFile-container {
+  display: flex;
+  color: var(--dark-font-medium-gray);
+  justify-content: left;
+}
+
+.messageFile-container-img {
+}
+
+.messageFile-container-img svg{
+}
+
+.messageFile-container-main{
+}
+
+.messageFile-container-main a{
+    text-decoration: none;
+    color: var(--dark-font-link);
+}

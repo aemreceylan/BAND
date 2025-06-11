@@ -9,6 +9,7 @@ import cors from "cors";
 import MongoStore from "connect-mongo";
 import csrf from "@dr.pogodin/csurf";
 import jwt from "jsonwebtoken";
+import fs from "fs";
 
 import DB from "./mongo.js";
 import ms from "./media.js";
@@ -57,6 +58,22 @@ app.use(
 );
 app.use(csrf());
 
+export function setFile(buffer, path, name) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const dirPath = import.meta.dirname + "/private/" + path;
+      const filePath = dirPath + "/" + name;
+      const url = "/upload/" + path + "/" + name;
+      await fs.promises.mkdir(dirPath, { recursive: true });
+      if (!fs.existsSync(filePath)) fs.promises.writeFile(filePath, buffer);
+      else fs.promises.writeFile(filePath + "a", buffer);
+      resolve(url);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
 (async () => {
   const db = DB();
   await db.init();
@@ -102,6 +119,10 @@ app.use(csrf());
       return res.status(500).json({ status: false, msg: "Error" });
     }
   }
+
+  app.get("/upload",(req,res)=>{
+
+  });
 
   app.get("/get-csrf", (req, res) => {
     res.status(200).json({
@@ -362,8 +383,9 @@ app.use(csrf());
         data.userId = jwt.verify(data.authToken, "abc123").id;
         delete data.authToken;
         console.log(data);
-        const{file,...others} =data;
-        const response = await db.newMessage(others);
+        data.text = data.text.trim();
+        if (data.text == "" && !data.file) throw new Error("Invalid text");
+        const response = await db.newMessage(data);
         io.to(data.channelName).emit(
           "newMessageFromServer",
           JSON.stringify(response)
@@ -492,6 +514,10 @@ app.use(csrf());
           }
           break;
       }
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Socket.IO Connect Error: ", err);
     });
 
     socket.on("disconnect", async () => {
