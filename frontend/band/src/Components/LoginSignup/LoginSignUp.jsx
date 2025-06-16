@@ -58,7 +58,7 @@ export default function LoginSignup() {
               );
               if (isRegisterScreen) {
                 signupRequest({
-                  url: "signup",
+                  url: "api/signup",
                   headers: {
                     "Content-Type": "application/json",
                   },
@@ -67,7 +67,7 @@ export default function LoginSignup() {
                 });
               } else {
                 loginRequest({
-                  url: "login",
+                  url: "api/login",
                   headers: {
                     "Content-Type": "application/json",
                   },

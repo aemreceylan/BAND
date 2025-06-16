@@ -16,7 +16,9 @@ export default function MessageFile({ file }) {
           </svg>
         </div>
         <div className="messageFile-container-main">
-          <a href={file[0]}>{file[1]}</a>
+          <a href={file[1]} target="_blank" rel="noopener noreferrer">
+            {file[0]}
+          </a>
         </div>
       </div>
     </>

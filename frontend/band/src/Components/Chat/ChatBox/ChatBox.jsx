@@ -1,32 +1,71 @@
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import "./ChatBox.css";
 import { WSContext } from "../../../Contexts/WSProvider";
 import UploadedFiles from "./UploadedFiles/UploadedFiles";
+import useFetch from "../../../hooks/useFetch";
 
 export default function ChatBox() {
   const { selectedChannel, socket, authToken } = useContext(WSContext);
   const textareaRef = useRef();
   const fileUploadRef = useRef();
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [sendFilesRequest, sendFileData, uploading] = useFetch();
 
-  function emitMessage(send_data) {
-    socket.emit(
-      "newMessageFromClient",
-      {
-        authToken: authToken,
-        text: textareaRef.current.value,
-        channelId: selectedChannel.id,
-        channelName: selectedChannel.name,
-        ...send_data,
-      },
-      (data) => {
-        console.log(data);
+  useEffect(() => {
+    if (sendFileData) {
+      if (sendFileData.status) {
+        socket.emit(
+          "newMessageFromClient",
+          {
+            authToken: authToken,
+            text: textareaRef.current.value,
+            channelId: selectedChannel.id,
+            channelName: selectedChannel.name,
+            files: sendFileData.data,
+          },
+          (data) => {
+            console.log(data);
+          }
+        );
+      } else {
+        console.log(sendFileData.msg);
       }
-    );
-  }
+    }
+  }, [sendFileData]);
 
+  function emitMessage() {
+    if (uploadedFiles.length > 0) {
+      const formData = new FormData();
+      uploadedFiles.forEach((element) => {
+        formData.append("file", element, element.name);
+      });
+      sendFilesRequest({
+        url: "file/send-file",
+        method: "POST",
+        body: formData,
+      });
+    } else {
+      socket.emit(
+        "newMessageFromClient",
+        {
+          authToken: authToken,
+          text: textareaRef.current.value,
+          channelId: selectedChannel.id,
+          channelName: selectedChannel.name,
+        },
+        (data) => {
+          console.log(data);
+        }
+      );
+    }
+    setUploadedFiles([]);
+  }
   return (
     <>
+      {isDragging && (
+        <img id="chatbox-container-drop-img" src="img/drag-drop.png" />
+      )}
       <div id="chatbox-container">
         <UploadedFiles
           setUploadedFiles={setUploadedFiles}
@@ -37,14 +76,21 @@ export default function ChatBox() {
             id="chatbox-textarea"
             onDragEnter={(e) => {
               e.preventDefault();
-              textareaRef.current.placeholder = `Mesaja dosya eki ekle`;
+              setIsDragging((prev) => {
+                if (!prev) return true;
+              });
             }}
             onDragLeave={(e) => {
               e.preventDefault();
-              textareaRef.current.placeholder = `#${selectedChannel.name} kanalına mesaj gönder...`;
+              setIsDragging((prev) => {
+                if (prev) return false;
+              });
             }}
             onDrop={(e) => {
               e.preventDefault();
+              setIsDragging((prev) => {
+                if (prev) return false;
+              });
               const files = Array.from(e.dataTransfer.files).splice(0, 4);
               if (files?.length != 0)
                 setUploadedFiles((prev) => [...prev, ...files]);
@@ -56,13 +102,7 @@ export default function ChatBox() {
               onKeyDown={(e) => {
                 (async () => {
                   if (e.key == "Enter" && !e.shiftKey) {
-                    if (uploadedFiles.length > 0)
-                      for (let i of uploadedFiles) {
-                        emitMessage({
-                          file: await i.arrayBuffer(),
-                          file_name: i.name,
-                        });
-                      }
+                    if (uploadedFiles.length > 0) emitMessage();
                     else emitMessage({});
                   }
                 })();
@@ -72,7 +112,11 @@ export default function ChatBox() {
                   textareaRef.current.value = "";
                 }
               }}
-              placeholder={`#${selectedChannel.name} kanalına mesaj gönder...`}
+              placeholder={
+                isDragging
+                  ? `Mesaja dosya eki ekle`
+                  : `#${selectedChannel.name} kanalına mesaj gönder...`
+              }
             ></textarea>
             <input
               ref={fileUploadRef}
@@ -90,13 +134,7 @@ export default function ChatBox() {
                 id="chatbox-buttons-send"
                 onClick={() => {
                   (async () => {
-                    if (uploadedFiles.length > 0)
-                      for (let i of uploadedFiles) {
-                        emitMessage({
-                          file: await i.arrayBuffer(),
-                          file_name: i.name,
-                        });
-                      }
+                    if (uploadedFiles.length > 0) emitMessage();
                     else emitMessage({});
                     textareaRef.current.value = "";
                     textareaRef.current.focus();

@@ -25,7 +25,7 @@ export default function HubList() {
               id="hubList-profile-button"
               onClick={() => {
                 logOutRequest({
-                  url: "log-out",
+                  url: "api/log-out",
                 });
               }}
             >

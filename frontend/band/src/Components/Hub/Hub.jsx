@@ -298,11 +298,10 @@ export default function Hub() {
 
   function setHubSettings(type, data) {
     hubSettingsRequest({
-      url: "set-hub-settings",
+      url: "api/set-hub-settings",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        authorization: authToken,
       },
       body: JSON.stringify({ type: type, data: data }),
     });

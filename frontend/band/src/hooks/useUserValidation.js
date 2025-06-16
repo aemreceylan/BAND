@@ -10,12 +10,13 @@ export default function useUserValidation() {
 
   const userValidation = async (authToken) => {
     try {
-      const response = await fetch("http://localhost:3000/user-validation", {
-        headers: {
-          authorization: authToken,
-        },
-        method: "GET",
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/user-validation",
+        {
+          credentials: "include",
+          method: "GET",
+        }
+      );
       const data = await response.json();
       if (!response.ok && !data.status) throw new Error(data.msg);
       console.log(data.msg);

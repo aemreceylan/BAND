@@ -54,11 +54,11 @@ export default function WSProvider({ children }) {
   ] = useCall(setConsumingStreams, setRtcMediaSettings);
 
   useEffect(() => {
-    isAuthRequest({ url: "session-check" });
+    isAuthRequest({ url: "api/session-check" });
     if (localStorage.getItem("selectedChannel"))
       setSelectedChannel(JSON.parse(localStorage.getItem("selectedChannel")));
     csrfRequest({
-      url: "get-csrf",
+      url: "api/get-csrf",
     });
   }, []);
 
@@ -177,7 +177,7 @@ export default function WSProvider({ children }) {
     if (logout) {
       setLogin(false);
       csrfRequest({
-        url: "get-csrf",
+        url: "api/get-csrf",
       });
       socket.disconnect();
       setLogout(false);

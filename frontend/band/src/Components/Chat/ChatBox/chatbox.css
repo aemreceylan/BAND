@@ -82,3 +82,13 @@
   height: 100%;
   color: var(--dark-font-medium-gray);
 }
+
+#chatbox-container-drop-img {
+  position: absolute;
+  pointer-events: none;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50%;
+  z-index: 100000;
+}
