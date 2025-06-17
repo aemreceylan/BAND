@@ -141,6 +141,7 @@ export default function WSProvider({ children }) {
         setCsrfToken(csrfRequestData.csrfToken);
         _csrfToken[0] = csrfRequestData.csrfToken;
       }
+      console.log(csrfRequestData.msg)
     }
   }, [csrfRequestData]);
 

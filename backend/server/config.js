@@ -3,6 +3,12 @@ const config = {
     http: {
       ip: "localhost",
       port: 3000,
+      status: true,
+    },
+    https: {
+      status: false,
+      privateKey: { location: "./localhost-key.pem" },
+      certificate: { location: "./localhost.pem" },
     },
   },
   database: {

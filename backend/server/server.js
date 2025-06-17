@@ -7,10 +7,12 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 import { Server } from "socket.io";
 import { createServer } from "http";
+import { createServer as createServer_s } from "https";
 import cors from "cors";
 import MongoStore from "connect-mongo";
 import csrf from "@dr.pogodin/csurf";
 import jwt from "jsonwebtoken";
+import fs from "fs";
 
 import db from "./mongo.js";
 import ms from "./media.js";
@@ -22,8 +24,27 @@ import Channel from "./models/Channel.js";
 import apiRouter from "./Routers/apiRouter.js";
 import fileRouter from "./Routers/fileRouter.js";
 
+const credentials = {};
+if (config.server.https.status) {
+  const privateKey = fs.readFileSync(
+    config.server.https.privateKey.location,
+    "utf8"
+  );
+  credentials.key = privateKey;
+  const certificate = fs.readFileSync(
+    config.server.https.certificate.location,
+    "utf8"
+  );
+  credentials.cert = certificate;
+}
+
+let httpServer;
 const app = express();
-const httpServer = createServer(app);
+if (config.server.https.status) {
+  httpServer = createServer_s(credentials, app);
+} else {
+  httpServer = createServer(app);
+}
 export const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:5173",
@@ -49,7 +70,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     cookie: {
-      secure: false,
+      secure: config.server.https.status,
       httpOnly: true,
       sameSite: "Strict",
     },
@@ -362,7 +383,7 @@ app.use(csrf());
 
 httpServer.listen(config.server.http.port, () => {
   console.log(
-    "Server address : http://+" +
+    "Server address : https://" +
       config.server.http.ip +
       ":" +
       config.server.http.port

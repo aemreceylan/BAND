@@ -3,6 +3,8 @@ import Category from "./models/Category.js";
 import User from "./models/User.js";
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
+
 import { io } from "./server.js";
 
 import config from "./config.js";
@@ -69,4 +71,20 @@ export async function userValidation(req, res, next) {
     }
     return res.status(500).json({ status: false, msg: "Validation Error" });
   }
+}
+
+export function createRateLimiter(ms, _max) {
+  const limiter = rateLimit({
+    windowMs: ms,
+    max: _max,
+    statusCode: 429,
+    keyGenerator: (req) => {
+      return req.cookies.authToken || req.ip;
+    },
+    message: {
+      status: false,
+      msg: "Too many requests have been sent. Please try again in a few minutes.",
+    },
+  });
+  return limiter;
 }

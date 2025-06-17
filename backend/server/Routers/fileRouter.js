@@ -3,6 +3,7 @@ import path from "path";
 import multer from "multer";
 import fs from "fs";
 import config from "../config.js";
+import { createRateLimiter } from "../utils.js";
 
 const fileRouter = express.Router();
 
@@ -41,7 +42,7 @@ const upload = multer({
   },
 }).array("file", 4);
 
-fileRouter.post("/send-file", (req, res) => {
+fileRouter.post("/send-file", createRateLimiter(1000 * 60, 1), (req, res) => {
   upload(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_SIZE") {
@@ -65,7 +66,7 @@ fileRouter.post("/send-file", (req, res) => {
       console.log(new Error("No files uploaded"));
       return res.status(400).json({ status: false, msg: "No files uploaded" });
     }
-    
+
     res.json({
       status: true,
       msg: "Files uploaded successfully",

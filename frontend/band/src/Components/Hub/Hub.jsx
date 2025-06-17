@@ -431,51 +431,88 @@ export default function Hub() {
                         }));
                       }}
                     >
-                      <select name="mic">
-                        {rtcDevices?.map((element, i) => {
-                          if (element.kind == "audioinput")
-                            return (
-                              <option key={i} value={element.deviceId}>
-                                {element.label}
-                              </option>
-                            );
-                        })}
-                      </select>
-                      <select name="listen">
-                        {rtcDevices?.map((element, i) => {
-                          if (element.kind == "audiooutput")
-                            return (
-                              <option key={i} value={element.deviceId}>
-                                {element.label}
-                              </option>
-                            );
-                        })}
-                      </select>
-                      <select name="cam">
-                        {rtcDevices?.map((element, i) => {
-                          if (element.kind == "videoinput")
-                            return (
-                              <option key={i} value={element.deviceId}>
-                                {element.label}
-                              </option>
-                            );
-                        })}
-                      </select>
+                      <div id="audioSettings-form-audioinput">
+                        <span>Ses Girişi</span>
+                        <select name="mic">
+                          {rtcDevices?.map((element, i) => {
+                            if (element.kind == "audioinput")
+                              return (
+                                <option key={i} value={element.deviceId}>
+                                  {element.label}
+                                </option>
+                              );
+                          })}
+                        </select>
+                        <div
+                          id="audioSettings-form-audioinput-button"
+                          onClick={(e) => {
+                            if (micAudioRef.current.muted) {
+                              micAudioRef.current.muted = false;
+                              e.target.innerText = "Testi Durdur";
+                            } else {
+                              micAudioRef.current.muted = true;
+                              e.target.innerText = "Testi Başlat";
+                            }
+                          }}
+                        >
+                          Testi Başlat
+                        </div>
+                      </div>
+                      <div id="audioSettings-form-audiooutput">
+                        <span>Ses Çıkışı</span>
+                        <select name="listen">
+                          {rtcDevices?.map((element, i) => {
+                            if (element.kind == "audiooutput")
+                              return (
+                                <option key={i} value={element.deviceId}>
+                                  {element.label}
+                                </option>
+                              );
+                          })}
+                        </select>
+                      </div>
+                      <div id="audioSettings-form-videoinput">
+                        <span>Kamera</span>
+                        <select name="cam">
+                          {rtcDevices?.map((element, i) => {
+                            if (element.kind == "videoinput")
+                              return (
+                                <option key={i} value={element.deviceId}>
+                                  {element.label}
+                                </option>
+                              );
+                          })}
+                        </select>
+                        <div
+                          id="audioSettings-form-videoinput-button"
+                          onClick={(e) => {
+                            if (camVideoRef.current.paused) {
+                              camVideoRef.current.play();
+                              e.target.innerText = "Testi Durdur";
+                            } else {
+                              camVideoRef.current.pause();
+                              e.target.innerText = "Testi Başlat";
+                            }
+                          }}
+                        >
+                          Testi Başlat
+                        </div>
+                        <div id="hubSettings-container-content-personalSettings-cam">
+                          <video
+                            playsInline
+                            ref={camVideoRef}
+                            id="hubSettings-container-content-personalSettings-cam-test"
+                          ></video>
+                        </div>
+                      </div>
                     </form>
-                  </div>
-                  <div id="hubSettings-container-content-personalSettings-cam">
-                    <video
-                      autoPlay
-                      playsInline
-                      ref={camVideoRef}
-                      id="hubSettings-container-content-personalSettings-cam-test"
-                    ></video>
                   </div>
                   <div id="hubSettings-container-content-personalSettings-mic">
                     <audio
                       ref={micAudioRef}
                       id="hubSettings-container-content-personalSettings-mic-test"
                       autoPlay
+                      muted
                     ></audio>
                   </div>
                 </div>
@@ -500,10 +537,7 @@ export default function Hub() {
                           setHubSettings("add-category", formData);
                         }}
                       >
-                        <label htmlFor="addCategory-input">
-                          {" "}
-                          Kategori Ekle
-                        </label>
+                        <label htmlFor="addCategory-input">Kategori Ekle</label>
                         <input type="text" id="addCategory-input" name="name" />
                         <button type="submit">EKLE</button>
                       </form>
@@ -569,6 +603,46 @@ export default function Hub() {
                           <option value="1">RTC</option>
                         </select>
                         <button type="submit">EKLE</button>
+                      </form>
+                    </div>
+                    <div
+                      id="hubSettings-container-content-hubSettings-addChannel"
+                      className="hubSettings-settingContainer"
+                    >
+                      <form
+                        id="editChannel-form"
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          let formData = new FormData(e.target);
+                          formData = Object.fromEntries(formData.entries());
+                          setHubSettings("edit-channel", formData);
+                        }}
+                      >
+                        <label htmlFor="editChannel-input">Kanal Düzenle</label>
+                        <select
+                          onInput={(e) => {
+                            setSelectedCategoryOption(e.target.value);
+                          }}
+                        >
+                          {sectionList?.map((element, index) => (
+                            <option key={index} value={element._id}>
+                              {element.name}
+                            </option>
+                          ))}
+                        </select>
+                        <select name="channelId">
+                          {sectionList?.map(
+                            (element) =>
+                              element._id == selectedCategoryOption &&
+                              element.channels.map((element, index) => (
+                                <option key={index} value={element._id}>
+                                  {element.name}
+                                </option>
+                              ))
+                          )}
+                        </select>
+                        <input type="text" id="editChannel-input" name="name" />
+                        <button type="submit">DÜZENLE</button>
                       </form>
                     </div>
                     <div

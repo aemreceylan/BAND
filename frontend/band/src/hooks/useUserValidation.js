@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { _csrfToken as csrfToken } from "../Contexts/WSProvider";
 
 /**
  * Custom hook for user validation.
@@ -15,6 +16,7 @@ export default function useUserValidation() {
         {
           credentials: "include",
           method: "GET",
+          headers: { "CSRF-Token": csrfToken[0] },
         }
       );
       const data = await response.json();
