@@ -103,7 +103,7 @@ export default function ChatBox() {
                 (async () => {
                   if (e.key == "Enter" && !e.shiftKey) {
                     if (uploadedFiles.length > 0) emitMessage();
-                    else emitMessage({});
+                    else emitMessage();
                   }
                 })();
               }}
@@ -135,7 +135,7 @@ export default function ChatBox() {
                 onClick={() => {
                   (async () => {
                     if (uploadedFiles.length > 0) emitMessage();
-                    else emitMessage({});
+                    else emitMessage();
                     textareaRef.current.value = "";
                     textareaRef.current.focus();
                   })();

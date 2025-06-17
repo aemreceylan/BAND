@@ -7,7 +7,21 @@ import config from "../config.js";
 const fileRouter = express.Router();
 
 const storage = multer.diskStorage({
-  filename: (req, file, cb) => cb(null, file.originalname),
+  filename: (req, file, cb) => {
+    const file_path =
+      path.dirname(import.meta.dirname) +
+      "/private/assets/client_uploads" +
+      "/";
+    const ext = path.extname(file.originalname);
+    let name = path.basename(file.originalname, ext);
+    name = Buffer(name, "latin1").toString("utf-8");
+    let new_name = name;
+    let counter = 0;
+    while (fs.existsSync(path.join(file_path + new_name + ext))) {
+      new_name = name + `(${++counter})`;
+    }
+    cb(null, new_name + ext);
+  },
   destination: (req, file, cb) => {
     const file_path = path.resolve(
       path.dirname(import.meta.dirname) + "/private/assets/client_uploads"
@@ -31,7 +45,6 @@ fileRouter.post("/send-file", (req, res) => {
   upload(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_SIZE") {
-        console.log(err);
         return res
           .status(400)
           .json({ status: false, msg: "File size exceeds 100 MB limit" });
@@ -52,13 +65,15 @@ fileRouter.post("/send-file", (req, res) => {
       console.log(new Error("No files uploaded"));
       return res.status(400).json({ status: false, msg: "No files uploaded" });
     }
-
+    
     res.json({
       status: true,
       msg: "Files uploaded successfully",
       data: req.files.map((file) => ({
-        originalName: file.originalname,
-        filePath: `http://${config.server.http.ip}:${config.server.http.port}/file/assets/client_uploads/${file.filename}`,
+        originalName: Buffer(file.originalname, "latin1").toString("utf-8"),
+        url: `http://${config.server.http.ip}:${
+          config.server.http.port
+        }/file/assets/client_uploads/${encodeURI(file.filename)}`,
         size: file.size,
       })),
     });
@@ -67,7 +82,7 @@ fileRouter.post("/send-file", (req, res) => {
 
 fileRouter.get("/*joker", (req, res) => {
   const fixed_path = path.resolve(
-    path.dirname(import.meta.dirname) + "/private/" + req.url
+    path.dirname(import.meta.dirname) + "/private/" + decodeURI(req.url)
   );
   console.log(fixed_path);
 

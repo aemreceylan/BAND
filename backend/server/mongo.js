@@ -89,7 +89,7 @@ const db = (() => {
         channel: data.channelId,
       };
       if (data.file) {
-        query.file = [data.file.originalName, data.file.filePath, data.file.size];
+        query.file = [data.file.originalName, data.file.url, data.file.size];
       }
       const newMessage = new Message(query);
       try {

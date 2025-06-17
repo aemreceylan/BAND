@@ -1,8 +1,15 @@
 .message{
     color: var(--dark-font-light-gray);
     width: 100%;
+    padding: 0.5rem 0;
 }
 
 .message span{
     width: 100%;
+}
+
+
+.message a{
+    text-decoration: none;
+    color: var(--dark-font-link);
 }

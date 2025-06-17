@@ -2,9 +2,18 @@
   display: flex;
   color: var(--dark-font-medium-gray);
   justify-content: left;
+  align-items: center;
+  border: 1px solid var(--dark-font-dark-gray);
+  border-radius: 0.5rem;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  width: 25%;
+  min-width: 10em;
+  overflow-x: auto;
 }
 
 .messageFile-container-img {
+  font-size: 1.3rem;
 }
 
 .messageFile-container-img svg{

@@ -17,7 +17,7 @@ export default function MessageFile({ file }) {
         </div>
         <div className="messageFile-container-main">
           <a href={file[1]} target="_blank" rel="noopener noreferrer">
-            {file[0]}
+            {file[0]} - {(file[2] / (1024 * 1024)).toFixed(2)} MB
           </a>
         </div>
       </div>
