@@ -54,7 +54,10 @@ export default function Hub() {
   const [isApproved, setIsApproved] = useState(false);
   const [userValidation, userValidationResult] = useUserValidation();
   const [hubSettingsRequest, hubSettingsRequestData] = useFetch();
+  const [createInviteLinkRequest, createInviteLinkData] = useFetch();
+  const [getInviteLinksRequest, getInviteLinksData] = useFetch();
   const [selectedCategoryOption, setSelectedCategoryOption] = useState();
+  const [inviteLinks, setInviteLinks] = useState([]);
   const [rtcDevices, setRtcDevices] = useState();
   const camVideoRef = useRef();
   const micAudioRef = useRef();
@@ -296,6 +299,23 @@ export default function Hub() {
     }
   }, [hubSettingsRequestData]);
 
+  useEffect(() => {
+    if (createInviteLinkData) {
+      if (createInviteLinkData.status) {
+      }
+      console.log(createInviteLinkData.msg);
+    }
+  }, [createInviteLinkData]);
+
+  useEffect(() => {
+    if (getInviteLinksData) {
+      if (getInviteLinksData.status) {
+        setInviteLinks(getInviteLinksData.data);
+      }
+      console.log(getInviteLinksData.msg);
+    }
+  }, [getInviteLinksData]);
+
   function setHubSettings(type, data) {
     hubSettingsRequest({
       url: "api/set-hub-settings",
@@ -333,7 +353,7 @@ export default function Hub() {
               </div>
               <div
                 id="hub-panel-buttons-frame"
-                onClick={() => setIsOpen((prev) => !prev)}
+                // onClick={() => setIsOpen((prev) => !prev)}
               >
                 {isOpen ? (
                   <svg
@@ -606,7 +626,7 @@ export default function Hub() {
                       </form>
                     </div>
                     <div
-                      id="hubSettings-container-content-hubSettings-addChannel"
+                      id="hubSettings-container-content-hubSettings-editChannel"
                       className="hubSettings-settingContainer"
                     >
                       <form
@@ -646,19 +666,19 @@ export default function Hub() {
                       </form>
                     </div>
                     <div
-                      id="hubSettings-container-content-hubSettings-addChannel"
+                      id="hubSettings-container-content-hubSettings-removeChannel"
                       className="hubSettings-settingContainer"
                     >
                       <form
-                        id="editChannel-form"
+                        id="removeChannel-form"
                         onSubmit={async (e) => {
                           e.preventDefault();
                           let formData = new FormData(e.target);
                           formData = Object.fromEntries(formData.entries());
-                          setHubSettings("edit-channel", formData);
+                          setHubSettings("remove-channel", formData);
                         }}
                       >
-                        <label htmlFor="editChannel-input">Kanal Düzenle</label>
+                        <label htmlFor="removeChannel-input">Kanal Sil</label>
                         <select
                           onInput={(e) => {
                             setSelectedCategoryOption(e.target.value);
@@ -681,9 +701,83 @@ export default function Hub() {
                               ))
                           )}
                         </select>
-                        <input type="text" id="editChannel-input" name="name" />
-                        <button type="submit">DÜZENLE</button>
+                        <button type="submit">SİL</button>
                       </form>
+                    </div>
+                    <div className="hubSettings-container-divider">
+                      Davet Ayarları
+                    </div>
+                    <div
+                      id="hubSettings-container-content-hubSettings-invite"
+                      className="hubSettings-settingContainer"
+                    >
+                      <form
+                        id="invite-form"
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          let formData = new FormData(e.target);
+                          formData = Object.fromEntries(formData.entries());
+                          createInviteLinkRequest({
+                            url: "api/create-invite-link",
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(formData),
+                          });
+                        }}
+                      >
+                        <input
+                          id="invite-input-minute"
+                          type="number"
+                          name="minutes"
+                          min={1}
+                          defaultValue={1}
+                        />
+                        <label htmlFor="invite-input-hour">
+                          dakika içerisinde
+                        </label>
+                        <input
+                          id="invite-input-use"
+                          type="number"
+                          name="maxUses"
+                          min={1}
+                          defaultValue={1}
+                        />
+                        <label htmlFor="invite-input-use">
+                          kişilik davet linki
+                        </label>
+                        <button type="submit">OLUŞTUR</button>
+                      </form>
+                      <div
+                        id="hubSettings-container-content-hubSettings-invite-link"
+                        onClick={(e) => {
+                          navigator.clipboard
+                            .writeText(e.target.innerText)
+                            .then(() => {
+                              console.log("Copied to clipboard.");
+                            });
+                        }}
+                      >
+                        {createInviteLinkData &&
+                          createInviteLinkData.status &&
+                          createInviteLinkData.data}
+                      </div>
+                      <div
+                        id="hubSettings-container-content-hubSettings-invite-links"
+                        style={inviteLinks.length == 0 && { cursor: "pointer" }}
+                        onClick={() => {
+                          if (inviteLinks.length == 0) {
+                            getInviteLinksRequest({
+                              url: "api/get-invite-links",
+                            });
+                          }
+                        }}
+                      >
+                        {inviteLinks.length == 0
+                          ? "Davet Bağlantılarını Getir"
+                          : inviteLinks.map((element)=><div></div>)}
+                      </div>
                     </div>
                   </div>
                 </>

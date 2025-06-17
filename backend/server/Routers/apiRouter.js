@@ -2,6 +2,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import db from "../mongo.js";
 import argon2 from "argon2";
+import { randomBytes } from "crypto";
 
 import {
   passwordVerification,
@@ -14,6 +15,50 @@ import {
 import config from "../config.js";
 
 const apiRouter = express.Router();
+
+apiRouter.get("/get-invite-links", async(req,res)=>{
+try {
+  
+} catch (err) {
+  
+}
+});
+
+apiRouter.post("/create-invite-link", async (req, res) => {
+  try {
+    const params = {};
+    if (!req.body.minutes || !req.body.maxUses)
+      throw new Error("Missing parameter/s.");
+    if (
+      req.body.maxUses < 1 ||
+      req.body.maxUses > 100 ||
+      req.body.minutes < 1 ||
+      req.body.minutes > 43200
+    )
+      throw new Error("Invalid parameter/s.");
+    params.maxUses = req.body.maxUses;
+    params.createDate = new Date();
+    params.expirationDate = new Date(
+      params.createDate.getTime() + req.body.minutes * 60000
+    );
+    params.token = randomBytes(16).toString("hex");
+    const result = await db.createInviteLink(params);
+    res.status(200).json({
+      status: true,
+      msg: "Invite link created.",
+      data:
+        "http://" +
+        config.server.http.ip +
+        ":" +
+        config.server.http.port +
+        "/" +
+        result.token,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ status: false, msg: "Error" });
+  }
+});
 
 apiRouter.get("/get-csrf", (req, res) => {
   res.status(200).json({
@@ -96,6 +141,16 @@ apiRouter.post(
         try {
           await db.editChannel(req.body.data);
           res.status(200).json({ status: true, msg: "Channel edited" });
+          emitHubSections();
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ status: false, msg: "Error" });
+        }
+        break;
+      case "remove-channel":
+        try {
+          await db.removeChannel(req.body.data);
+          res.status(200).json({ status: true, msg: "Channel deleted" });
           emitHubSections();
         } catch (err) {
           console.log(err);

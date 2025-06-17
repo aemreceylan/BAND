@@ -29,7 +29,7 @@ export default function Users() {
             <div id="users-buttons">
               <div
                 id="users-buttons-frame"
-                onClick={() => setIsOpen((prev) => !prev)}
+                // onClick={() => setIsOpen((prev) => !prev)}
               >
                 {isOpen ? (
                   <svg
@@ -60,9 +60,9 @@ export default function Users() {
                 )}
               </div>
             </div>
-            <div id="users-search">
+            {/* <div id="users-search">
               <input type="text" placeholder="Kullanıcı ara..." />
-            </div>
+            </div> */}
           </div>
         </Panel>
         <div id="users-list">

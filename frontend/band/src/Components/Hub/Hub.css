@@ -381,4 +381,59 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  margin-bottom: 1rem;
+}
+
+#removeChannel-form {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+#invite-form {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+#hubSettings-container-content-hubSettings-invite-link {
+  margin-top: 1rem;
+  background-color: var(--dark-background-light-gray);
+  border: 1px solid var(--dark-font-medium-gray);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-size: 1rem;
+  color: var(--dark-font-light-gray);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+#hubSettings-container-content-hubSettings-invite-link:hover {
+  border-color: var(--dark-font-light-gray);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+#hubSettings-container-content-hubSettings-invite-links {
+  margin-top: 1rem;
+  background-color: var(--dark-background-light-gray);
+  border: 1px solid var(--dark-font-medium-gray);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-size: 1rem;
+  color: var(--dark-font-light-gray);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+#hubSettings-container-content-hubSettings-invite-links:hover {
+  border-color: var(--dark-font-light-gray);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }

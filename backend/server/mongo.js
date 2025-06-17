@@ -3,6 +3,7 @@ import User from "./models/User.js";
 import Channel from "./models/Channel.js";
 import Category from "./models/Category.js";
 import Message from "./models/Message.js";
+import InviteLink from "./models/InviteLink.js";
 
 const db = (() => {
   async function init() {
@@ -68,10 +69,10 @@ const db = (() => {
 
   function createCategory(data) {
     return new Promise(async (resolve, reject) => {
-      const newCategory = new Category({
-        name: data.name,
-      });
       try {
+        const newCategory = new Category({
+          name: data.name,
+        });
         await newCategory.save();
         resolve();
       } catch (err) {
@@ -178,6 +179,30 @@ const db = (() => {
       i;
     });
   }
+
+  function removeChannel(data) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        await Channel.findByIdAndDelete(data.channelId);
+        resolve();
+      } catch (err) {
+        reject();
+      }
+    });
+  }
+
+  function createInviteLink(params) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const newInviteLink = new InviteLink(params);
+        resolve(await newInviteLink.save());
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
+
   return {
     init,
     createUser,
@@ -189,6 +214,8 @@ const db = (() => {
     editCategory,
     editChannel,
     isRtcChannel,
+    removeChannel,
+    createInviteLink,
   };
 })();
 
