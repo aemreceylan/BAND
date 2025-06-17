@@ -203,6 +203,18 @@ const db = (() => {
     });
   }
 
+  function getInviteLinks(query={}) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const result = await InviteLink.find(query);
+        resolve(result);
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
+
   return {
     init,
     createUser,
@@ -216,6 +228,7 @@ const db = (() => {
     isRtcChannel,
     removeChannel,
     createInviteLink,
+    getInviteLinks,
   };
 })();
 

@@ -408,7 +408,6 @@
   color: var(--dark-font-light-gray);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   cursor: pointer;
 }
 
@@ -429,11 +428,15 @@
   color: var(--dark-font-light-gray);
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1rem;
 }
 
 #hubSettings-container-content-hubSettings-invite-links:hover {
   border-color: var(--dark-font-light-gray);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.hubSettings-container-content-hubSettings-invite-links-element{
+  cursor: pointer;
+  width: fit-content;
 }

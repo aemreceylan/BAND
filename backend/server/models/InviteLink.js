@@ -33,6 +33,10 @@ inviteLinkSchema.methods.incrementUses = function () {
   }
 };
 
+inviteLinkSchema.methods.testValid = function () {
+  return this.uses < this.maxUses && Date.now() < this.expirationDate.getTime();
+};
+
 const InviteLink = mongoose.model("InviteLink", inviteLinkSchema);
 
 export default InviteLink;

@@ -765,18 +765,32 @@ export default function Hub() {
                       </div>
                       <div
                         id="hubSettings-container-content-hubSettings-invite-links"
-                        style={inviteLinks.length == 0 && { cursor: "pointer" }}
+                        style={
+                          inviteLinks.length == 0 ? { cursor: "pointer" } : {}
+                        }
                         onClick={() => {
-                          if (inviteLinks.length == 0) {
-                            getInviteLinksRequest({
-                              url: "api/get-invite-links",
-                            });
-                          }
+                          getInviteLinksRequest({
+                            url: "api/get-invite-links",
+                          });
                         }}
                       >
                         {inviteLinks.length == 0
                           ? "Davet Bağlantılarını Getir"
-                          : inviteLinks.map((element)=><div></div>)}
+                          : inviteLinks.map((element, i) => (
+                              <div
+                                onClick={(e) => {
+                                  navigator.clipboard
+                                    .writeText(e.target.innerText)
+                                    .then(() => {
+                                      console.log("Copied to clipboard.");
+                                    });
+                                }}
+                                className="hubSettings-container-content-hubSettings-invite-links-element"
+                                key={i}
+                              >
+                                {element}
+                              </div>
+                            ))}
                       </div>
                     </div>
                   </div>

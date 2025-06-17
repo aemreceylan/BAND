@@ -16,12 +16,47 @@ import config from "../config.js";
 
 const apiRouter = express.Router();
 
-apiRouter.get("/get-invite-links", async(req,res)=>{
-try {
-  
-} catch (err) {
-  
-}
+apiRouter.get("/invite/:token", async (req, res) => {
+  try {
+    const result = await db.getInviteLinks({ token: req.params.token });
+    if (result.length > 1)
+      throw new Error(
+        "The amount of the returned value is greater than it should be"
+      );
+    if (result.length == 0) throw new Error("Invalid token");
+    if (!result[0].testValid()) throw new Error("Invalid token");
+    
+    res.status(200).json({
+      status: true,
+      msg: "-",
+      data: "",
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ status: false, msg: "Error" });
+  }
+});
+
+apiRouter.get("/get-invite-links", async (req, res) => {
+  try {
+    const response = await db.getInviteLinks();
+    res.status(200).json({
+      status: true,
+      msg: "invitation links",
+      data: response.map(
+        (element) =>
+          "http://" +
+          config.server.http.ip +
+          ":" +
+          config.server.http.port +
+          "/api/invite/" +
+          element.token
+      ),
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ status: false, msg: "Error" });
+  }
 });
 
 apiRouter.post("/create-invite-link", async (req, res) => {
@@ -51,7 +86,7 @@ apiRouter.post("/create-invite-link", async (req, res) => {
         config.server.http.ip +
         ":" +
         config.server.http.port +
-        "/" +
+        "/api/invite/" +
         result.token,
     });
   } catch (err) {
