@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import useFetch from "../hooks/useFetch";
 import useCall from "../hooks/useCall";
@@ -37,6 +37,8 @@ export default function WSProvider({ children }) {
     screen: [],
   });
   const [rtcScreen, setRtcScreen] = useState(false);
+  const [inviteToken, setInviteToken] = useState();
+  const [contextMenu, setContextMenu] = useState({});
 
   const [csrfRequest, csrfRequestData] = useFetch();
   const [isAuthRequest, isAuthData] = useFetch();
@@ -52,6 +54,16 @@ export default function WSProvider({ children }) {
     waitNewProducers,
     closeProduce,
   ] = useCall(setConsumingStreams, setRtcMediaSettings);
+
+  const [logOutRequest, logOutRequestData] = useFetch();
+  useEffect(() => {
+    if (logOutRequestData) {
+      if (logOutRequestData.status) {
+        setLogout(true);
+      }
+      console.log(logOutRequestData.msg);
+    }
+  }, [logOutRequestData]);
 
   useEffect(() => {
     isAuthRequest({ url: "api/session-check" });
@@ -141,7 +153,7 @@ export default function WSProvider({ children }) {
         setCsrfToken(csrfRequestData.csrfToken);
         _csrfToken[0] = csrfRequestData.csrfToken;
       }
-      console.log(csrfRequestData.msg)
+      console.log(csrfRequestData.msg);
     }
   }, [csrfRequestData]);
 
@@ -173,6 +185,15 @@ export default function WSProvider({ children }) {
       });
     }
   }, [socket]);
+
+  useEffect(() => {
+    if (login && inviteToken) {
+      console.log("djosjodsj");
+      logOutRequest({
+        url: "api/log-out",
+      });
+    }
+  }, [login, inviteToken]);
 
   useEffect(() => {
     if (logout) {
@@ -216,6 +237,11 @@ export default function WSProvider({ children }) {
     rtcScreen,
     setRtcScreen,
     closeProduce,
+    setInviteToken,
+    inviteToken,
+    logOutRequest,
+    contextMenu,
+    setContextMenu,
   };
 
   return (

@@ -7,7 +7,8 @@ import useFetch from "../../hooks/useFetch";
 export default function LoginSignup() {
   const [isRegisterScreen, setIsRegisterScreen] = useState(false);
   const formDataRef = useRef();
-  const { setLogin, setSocket, io, setAuthToken } = useContext(WSContext);
+  const { setLogin, setSocket, io, setAuthToken, inviteToken, setInviteToken } =
+    useContext(WSContext);
   const [signupRequest, signupRequestData] = useFetch();
   const [loginRequest, loginRequestData] = useFetch();
 
@@ -16,6 +17,8 @@ export default function LoginSignup() {
       if (signupRequestData.status) {
         console.log(signupRequestData.msg);
         setIsRegisterScreen(false);
+        setInviteToken(null);
+        window.location.href = window.location.origin;
       } else {
         console.log(signupRequestData.msg);
       }
@@ -30,9 +33,10 @@ export default function LoginSignup() {
         console.log(loginRequestData.msg);
         setSocket(
           io("localhost:3000", {
-            auth: {authToken:loginRequestData.authToken},
+            auth: { authToken: loginRequestData.authToken },
           })
         );
+        window.location.href = window.location.origin;
       } else {
         console.log(loginRequestData.msg);
       }
@@ -56,6 +60,7 @@ export default function LoginSignup() {
               formDataRef.current = Object.fromEntries(
                 formDataRef.current.entries()
               );
+              formDataRef.current.inviteToken = inviteToken;
               if (isRegisterScreen) {
                 signupRequest({
                   url: "api/signup",
@@ -66,6 +71,7 @@ export default function LoginSignup() {
                   body: JSON.stringify(formDataRef.current),
                 });
               } else {
+                setInviteToken(null);
                 loginRequest({
                   url: "api/login",
                   headers: {

@@ -10,6 +10,11 @@ const config = {
       privateKey: { location: "./localhost-key.pem" },
       certificate: { location: "./localhost.pem" },
     },
+    settings: {
+      registration: {
+        type: "inviteOnly",
+      },
+    },
   },
   database: {
     url: "mongodb://localhost:27017/bandDB",

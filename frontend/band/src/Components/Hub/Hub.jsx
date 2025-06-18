@@ -59,6 +59,7 @@ export default function Hub() {
   const [selectedCategoryOption, setSelectedCategoryOption] = useState();
   const [inviteLinks, setInviteLinks] = useState([]);
   const [rtcDevices, setRtcDevices] = useState();
+  const [selectedInviteType, setSelectedInviteType] = useState("inviteOnly");
   const camVideoRef = useRef();
   const micAudioRef = useRef();
 
@@ -315,6 +316,12 @@ export default function Hub() {
       console.log(getInviteLinksData.msg);
     }
   }, [getInviteLinksData]);
+
+  useEffect(() => {
+    if (selectedInviteType) {
+      setHubSettings("set-inviteType", selectedInviteType);
+    }
+  }, [selectedInviteType]);
 
   function setHubSettings(type, data) {
     hubSettingsRequest({
@@ -711,6 +718,26 @@ export default function Hub() {
                       id="hubSettings-container-content-hubSettings-invite"
                       className="hubSettings-settingContainer"
                     >
+                      <div id="hubSettings-container-content-hubSettings-invite-type">
+                        <form id="inviteType-form">
+                          <label htmlFor="inviteType-select">Davet Tipi</label>
+                          <select
+                            name="type"
+                            id="inviteType-select"
+                            value={selectedInviteType}
+                            onChange={(e) => {
+                              setSelectedInviteType(e.target.value);
+                            }}
+                          >
+                            <option value="inviteOnly">
+                              Sadece Davet Linki İle
+                            </option>
+                            <option value="openRegistiration">
+                              Herkese Açık
+                            </option>
+                          </select>
+                        </form>
+                      </div>
                       <form
                         id="invite-form"
                         onSubmit={async (e) => {

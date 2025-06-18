@@ -16,6 +16,22 @@ import config from "../config.js";
 
 const apiRouter = express.Router();
 
+apiRouter.post("/set-user-settings", userAuthorization, async (req, res) => {
+  switch (req.body.type) {
+    case "ban-client":
+      try {
+        await db.editUser(req.body.data);
+        res.status(201).json({ status: true, msg: "User banned" });
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: false, msg: "Error" });
+      }
+      break;
+    default:
+      res.status(400).json({ status: false, msg: "Invalid type" });
+  }
+});
+
 apiRouter.get("/invite/:token", async (req, res) => {
   try {
     const result = await db.getInviteLinks({ token: req.params.token });
@@ -24,20 +40,18 @@ apiRouter.get("/invite/:token", async (req, res) => {
         "The amount of the returned value is greater than it should be"
       );
     if (result.length == 0) throw new Error("Invalid token");
-    if (!result[0].testValid()) throw new Error("Invalid token");
-    
-    res.status(200).json({
-      status: true,
-      msg: "-",
-      data: "",
-    });
+    if (!result[0].testValid())
+      throw new Error(
+        "The invite link is no longer valid due to expiration or usage limit."
+      );
+    res.redirect(301, "http://localhost:5173?token=" + result[0].token);
   } catch (err) {
     console.log(err);
     res.status(500).json({ status: false, msg: "Error" });
   }
 });
 
-apiRouter.get("/get-invite-links", async (req, res) => {
+apiRouter.get("/get-invite-links", userAuthorization, async (req, res) => {
   try {
     const response = await db.getInviteLinks();
     res.status(200).json({
@@ -59,7 +73,7 @@ apiRouter.get("/get-invite-links", async (req, res) => {
   }
 });
 
-apiRouter.post("/create-invite-link", async (req, res) => {
+apiRouter.post("/create-invite-link", userAuthorization, async (req, res) => {
   try {
     const params = {};
     if (!req.body.minutes || !req.body.maxUses)
@@ -192,6 +206,29 @@ apiRouter.post(
           res.status(500).json({ status: false, msg: "Error" });
         }
         break;
+      case "set-inviteType":
+        try {
+          if (
+            !(
+              req.body.data == "inviteOnly" ||
+              req.body.data == "openRegistiration"
+            )
+          )
+            throw new Error("Invalid invite type.");
+          if (req.body.data == config.server.settings.registration.type)
+            throw new Error("Type is already the same.");
+          config.server.settings.registration.type = req.body.data;
+          res.status(200).json({
+            status: true,
+            msg:
+              "Invitation type changed to " +
+              config.server.settings.registration.type,
+          });
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ status: false, msg: "Error" });
+        }
+        break;
       default:
         res.status(400).json({ status: false, msg: "Invalid type" });
     }
@@ -212,6 +249,7 @@ apiRouter.get(
 apiRouter.post("/login", async (req, res) => {
   try {
     const result = await db.checkUser({ nick: req.body.nick });
+    if (result.isBanned) throw new Error("User banned.");
     await passwordVerification(result.password, req.body.password);
     const authToken = jwt.sign({ id: result.id }, config.jwt.secret);
     req.session.isAuth = true;
@@ -238,6 +276,23 @@ apiRouter.post(
       res.status(400).json({ status: false, msg: "Passwords do not match" });
     else {
       try {
+        if ((config.server.settings.registration.type = "inviteOnly")) {
+          if (!req.body.inviteToken)
+            throw new Error("Token parameter not avaible.");
+          const result = await db.getInviteLinks({
+            token: req.body.inviteToken,
+          });
+          if (result.length > 1)
+            throw new Error(
+              "The amount of the returned value is greater than it should be"
+            );
+          if (result.length == 0) throw new Error("Invalid token");
+          if (!result[0].testValid())
+            throw new Error(
+              "The invite link is no longer valid due to expiration or usage limit."
+            );
+          await result[0].incrementUses();
+        }
         req.body.password = await argon2.hash(req.body.password, {
           hashLength: 50,
           timeCost: 4,

@@ -203,11 +203,25 @@ const db = (() => {
     });
   }
 
-  function getInviteLinks(query={}) {
+  function getInviteLinks(query = {}) {
     return new Promise(async (resolve, reject) => {
       try {
         const result = await InviteLink.find(query);
         resolve(result);
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
+
+  function editUser(data) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        await User.findByIdAndUpdate(data, {
+          $set: { isBanned: true },
+        });
+        resolve();
       } catch (err) {
         console.log(err);
         reject();
@@ -229,6 +243,7 @@ const db = (() => {
     removeChannel,
     createInviteLink,
     getInviteLinks,
+    editUser,
   };
 })();
 

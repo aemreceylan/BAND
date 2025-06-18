@@ -9,18 +9,26 @@ import { useContext, useEffect, useRef } from "react";
 import LoginSignup from "./Components/LoginSignup/LoginSignUp";
 import { WSContext } from "./Contexts/WSProvider";
 import FloatingElement from "./Components/UI/FloatingElement/FloatingElement";
+import ContextMenu from "./Components/UI/ContextMenu/ContextMEnu";
 export default function App() {
-  const { login, streams } = useContext(WSContext);
-
+  const { login, streams, setInviteToken, contextMenu, setContextMenu } =
+    useContext(WSContext);
   useEffect(() => {
     document.addEventListener("contextmenu", (e) => e.preventDefault());
     if (!localStorage.getItem("categoryIsOpen"))
       localStorage.setItem("categoryIsOpen", "{}");
+    const urlParams = new URLSearchParams(window.location.search);
+    setInviteToken(urlParams.get("token"));
   }, []);
   return (
     <>
       {login ? (
-        <div id="app">
+        <div
+          id="app"
+          onClick={() => {
+            setContextMenu({ isVisible: false });
+          }}
+        >
           <div id="app-main">
             <HubList />
             <Hub />
@@ -64,6 +72,7 @@ export default function App() {
             </FloatingElement>
           );
       })}
+      <ContextMenu data={contextMenu} />
     </>
   );
 }

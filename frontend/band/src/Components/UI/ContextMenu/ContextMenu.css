@@ -1,0 +1,29 @@
+#contextMenu {
+  position: absolute;
+  background-color: var(--dark-background-light-gray);
+  border: 1px solid var(--dark-font-medium-gray);
+  border-radius: 0.5rem;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25);
+  padding: 0.5rem 0;
+  z-index: 10000;
+  max-width: 25%;
+  color: var(--dark-font-light-gray);
+}
+
+#contextMenu ul {
+  list-style: none;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+#contextMenu li {
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  padding: 0.2rem 0.5rem;
+}
+
+#contextMenu li:hover {
+  background-color: var(--dark-background-medium-gray);
+}
