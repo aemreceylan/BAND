@@ -62,7 +62,7 @@ export default function Hub() {
   const [selectedInviteType, setSelectedInviteType] = useState("inviteOnly");
   const camVideoRef = useRef();
   const micAudioRef = useRef();
-
+  const profilePhotoInputRef = useRef();
   useEffect(() => {
     if (!selectedCategoryOption && sectionList && sectionList.length > 0)
       setSelectedCategoryOption(sectionList[0]._id);
@@ -541,6 +541,31 @@ export default function Hub() {
                       autoPlay
                       muted
                     ></audio>
+                  </div>
+                  <div className="hubSettings-container-divider">
+                    Profil Ayarları
+                  </div>
+                  <div
+                    id="hubSettings-container-content-personalSettings-profileSettings"
+                    className="hubSettings-settingContainer"
+                  >
+                    <div id="hubSettings-container-content-personalSettings-profileSettings-profilePhoto">
+                      <img src="" />
+                      <div id="hubSettings-container-content-personalSettings-profileSettings-profilePhoto-button" onClick={()=>{
+                        profilePhotoInputRef.current.click();
+                      }}>
+                        <span>Fotoğraf Seç</span>
+                      </div>
+                      <input
+                        ref={profilePhotoInputRef}
+                        id="hubSettings-container-content-personalSettings-profileSettings-profilePhoto-input"
+                        type="file"
+                        onChange={(e)=>{
+                          const file = e.target.files[0];
+                          
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               ) : selectedOption == 1 && !isApproved ? (

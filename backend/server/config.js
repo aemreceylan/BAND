@@ -12,7 +12,10 @@ const config = {
     },
     settings: {
       registration: {
-        type: "inviteOnly",
+        type: "openRegistiration", // openRegistiration , inviteOnly
+      },
+      rateLimit: {
+        status: false,
       },
     },
   },

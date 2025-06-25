@@ -95,7 +95,9 @@ app.use(csrf());
     const list = new Map();
     async function getUsersFromDB() {
       try {
-        const result = await User.find({});
+        const result = await User.find({ isBanned: false }).select({
+          password: 0,
+        });
         for (let i of result) {
           list.set(i.id, { ...i._doc, isOnline: false });
         }
@@ -103,8 +105,11 @@ app.use(csrf());
         console.log(err);
       }
     }
-    function setUserOnline(user) {
-      list.set(user.id, { ...user._doc, isOnline: true });
+    function setUserOnline(id) {
+      list.set(id, {
+        ...list.get(id),
+        isOnline: true,
+      });
     }
     function setUserOffline(id) {
       list.set(id, {
@@ -145,13 +150,7 @@ app.use(csrf());
     socket.emit("welcome", "WS:Client accepted");
 
     try {
-      const result = await User.findById(socket.userId).select({
-        _id: 1,
-        nick: 1,
-        profilePhotoURL: 1,
-        roles: 1,
-      });
-      userList.setUserOnline(result);
+      userList.setUserOnline(socket.userId);
       userList.emitList();
     } catch (err) {
       (err) => console.log(err);

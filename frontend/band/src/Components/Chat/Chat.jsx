@@ -6,13 +6,13 @@ import { useContext } from "react";
 import { WSContext } from "../../Contexts/WSProvider";
 
 export default function Chat() {
-  const { rtcScreen } = useContext(WSContext);
+  const { selectedChannel } = useContext(WSContext);
   return (
     <>
       <div id="chat">
         <Panel />
         <Feed />
-        {!rtcScreen && <ChatBox />}
+        {selectedChannel.id && <ChatBox />}
       </div>
     </>
   );

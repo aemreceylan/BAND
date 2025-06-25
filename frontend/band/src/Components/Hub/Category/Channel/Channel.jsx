@@ -9,6 +9,8 @@ export default function Channel({ data }) {
     setSelectedRTC,
     activeRTC,
     setActiveRTC,
+    profileScreen,
+    setProfileScreen,
   } = useContext(WSContext);
   return (
     <>
@@ -38,6 +40,7 @@ export default function Channel({ data }) {
                 name: data.name,
               });
           }
+          if (profileScreen) setProfileScreen();
         }}
       >
         <div className="hub-category-channelList-channel-title">

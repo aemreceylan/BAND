@@ -39,6 +39,8 @@ export default function WSProvider({ children }) {
   const [rtcScreen, setRtcScreen] = useState(false);
   const [inviteToken, setInviteToken] = useState();
   const [contextMenu, setContextMenu] = useState({});
+  const [profileScreen, setProfileScreen] = useState();
+  const [profileId, setProfileId] = useState();
 
   const [csrfRequest, csrfRequestData] = useFetch();
   const [isAuthRequest, isAuthData] = useFetch();
@@ -56,6 +58,10 @@ export default function WSProvider({ children }) {
   ] = useCall(setConsumingStreams, setRtcMediaSettings);
 
   const [logOutRequest, logOutRequestData] = useFetch();
+
+  useEffect(() => {
+  }, [profileScreen]);
+
   useEffect(() => {
     if (logOutRequestData) {
       if (logOutRequestData.status) {
@@ -163,6 +169,7 @@ export default function WSProvider({ children }) {
       if (isAuthData.status) {
         setLogin(true);
         setAuthToken(isAuthData.authToken);
+        setProfileId(isAuthData.profileId);
         setSocket(
           io("localhost:3000", {
             auth: { authToken: isAuthData.authToken },
@@ -242,6 +249,10 @@ export default function WSProvider({ children }) {
     logOutRequest,
     contextMenu,
     setContextMenu,
+    profileScreen,
+    setProfileScreen,
+    setProfileId,
+    profileId,
   };
 
   return (

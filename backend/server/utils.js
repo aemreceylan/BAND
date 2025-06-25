@@ -86,5 +86,11 @@ export function createRateLimiter(ms, _max) {
       msg: "Too many requests have been sent. Please try again in a few minutes.",
     },
   });
-  return limiter;
+  return (req, res, next) => {
+    if (!config.server.settings.rateLimit.status) {
+      next();
+    } else {
+      limiter(req, res, next);
+    }
+  };
 }

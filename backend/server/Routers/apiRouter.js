@@ -16,6 +16,26 @@ import config from "../config.js";
 
 const apiRouter = express.Router();
 
+apiRouter.post("/get-profile", async (req, res) => {
+  try {
+    const result = await db.getProfile(
+      { _id: req.body },
+      { path: "user", select: "nick profilePhotoURL" }
+    );
+    if (!result) throw new Error();
+    res.status(201).json({
+      status: true,
+      msg: "Profile information was fetched successfully.",
+      data: result,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      msg: "An error occurred while trying to retrieve profile information.",
+    });
+  }
+});
+
 apiRouter.post("/set-user-settings", userAuthorization, async (req, res) => {
   switch (req.body.type) {
     case "ban-client":
@@ -249,20 +269,25 @@ apiRouter.get(
 apiRouter.post("/login", async (req, res) => {
   try {
     const result = await db.checkUser({ nick: req.body.nick });
+    console.log(result);
     if (result.isBanned) throw new Error("User banned.");
     await passwordVerification(result.password, req.body.password);
     const authToken = jwt.sign({ id: result.id }, config.jwt.secret);
     req.session.isAuth = true;
     req.session.authToken = authToken;
     req.session.cookie.maxAge = 86400000 * 2;
+    req.session.profileId = result.profile;
     res.cookie("authToken", authToken, {
       httpOnly: true,
       secure: config.server.https.status,
       sameSite: "Strict",
     });
-    res
-      .status(202)
-      .json({ status: true, msg: "Login successful", authToken: authToken });
+    res.status(202).json({
+      status: true,
+      msg: "Login successful",
+      authToken: authToken,
+      profileId: result.profile,
+    });
   } catch (err) {
     res.status(400).json({ status: false, msg: "Login failed = " + err });
   }
@@ -276,7 +301,7 @@ apiRouter.post(
       res.status(400).json({ status: false, msg: "Passwords do not match" });
     else {
       try {
-        if ((config.server.settings.registration.type = "inviteOnly")) {
+        if (config.server.settings.registration.type == "inviteOnly") {
           if (!req.body.inviteToken)
             throw new Error("Token parameter not avaible.");
           const result = await db.getInviteLinks({
@@ -315,6 +340,7 @@ apiRouter.get("/session-check", (req, res) => {
       status: true,
       message: "Session check approved",
       authToken: req.session.authToken,
+      profileId: req.session.profileId,
     });
   else {
     res.status(401).json({ status: false, message: "Session check failed" });

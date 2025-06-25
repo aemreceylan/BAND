@@ -4,15 +4,15 @@ import { WSContext } from "../../../Contexts/WSProvider";
 import useFetch from "../../../hooks/useFetch";
 
 export default function UsersElement({ data }) {
-  const { setContextMenu } = useContext(WSContext);
+  const { setContextMenu, setProfileScreen, setSelectedChannel } =
+    useContext(WSContext);
   const [userSettingsRequest, userSettingsData] = useFetch();
 
-useEffect(()=>{
-  if(userSettingsData){
-    console.log(userSettingsData.msg)
-  }
-}
-  ,[userSettingsData])
+  useEffect(() => {
+    if (userSettingsData) {
+      console.log(userSettingsData.msg);
+    }
+  }, [userSettingsData]);
 
   function setUserSettings(type, req_data) {
     userSettingsRequest({
@@ -33,6 +33,13 @@ useEffect(()=>{
             isVisible: true,
             coords: { x: e.pageX, y: e.pageY },
             items: [
+              {
+                text: "Profile Git",
+                function: () => {
+                  setProfileScreen(data.profile);
+                  setSelectedChannel({ id: "", name: "" });
+                },
+              },
               {
                 text: "Kullanıcıyı Yasakla",
                 function: () => {

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Profile from "./Profile.js";
 
 const userSchema = new mongoose.Schema({
   nick: {
@@ -30,6 +31,26 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  profile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Profile",
+  },
+});
+
+userSchema.pre("save", async function (next) {
+  try {
+    console.log("sa1");
+    if (this.profile) {
+      console.log("sa2");
+      return next();
+    }
+    const newProfile = await new Profile({ user: this._id }).save();
+    this.profile = newProfile._id;
+    next();
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
 });
 
 const User = mongoose.model("User", userSchema);

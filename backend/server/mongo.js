@@ -4,6 +4,7 @@ import Channel from "./models/Channel.js";
 import Category from "./models/Category.js";
 import Message from "./models/Message.js";
 import InviteLink from "./models/InviteLink.js";
+import Profile from "./models/Profile.js";
 
 const db = (() => {
   async function init() {
@@ -229,6 +230,18 @@ const db = (() => {
     });
   }
 
+  function getProfile(query,populate={}) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const result = await Profile.find(query).populate(populate);
+        resolve(result[0]);
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
+
   return {
     init,
     createUser,
@@ -244,6 +257,7 @@ const db = (() => {
     createInviteLink,
     getInviteLinks,
     editUser,
+    getProfile,
   };
 })();
 

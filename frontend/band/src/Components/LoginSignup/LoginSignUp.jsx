@@ -7,8 +7,15 @@ import useFetch from "../../hooks/useFetch";
 export default function LoginSignup() {
   const [isRegisterScreen, setIsRegisterScreen] = useState(false);
   const formDataRef = useRef();
-  const { setLogin, setSocket, io, setAuthToken, inviteToken, setInviteToken } =
-    useContext(WSContext);
+  const {
+    setLogin,
+    setSocket,
+    io,
+    setAuthToken,
+    inviteToken,
+    setInviteToken,
+    setProfileId,
+  } = useContext(WSContext);
   const [signupRequest, signupRequestData] = useFetch();
   const [loginRequest, loginRequestData] = useFetch();
 
@@ -30,6 +37,7 @@ export default function LoginSignup() {
       if (loginRequestData.status) {
         setLogin(true);
         setAuthToken(loginRequestData.authToken);
+        setProfileId(loginRequestData.profileId);
         console.log(loginRequestData.msg);
         setSocket(
           io("localhost:3000", {

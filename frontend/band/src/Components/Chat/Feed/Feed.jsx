@@ -4,12 +4,13 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { WSContext } from "../../../Contexts/WSProvider";
 import useFetch from "../../../hooks/useFetch";
 import RtcScreen from "./RtcScreen/RtcScreen";
+import ProfileScreen from "./ProfileScreen/ProfileScreen";
 
 export default function Feed() {
   const feedRef = useRef();
   const messageAmountRef = useRef(25);
   const scrollData = useRef();
-  const { selectedChannel, socket, rtcScreen, setRtcScreen } =
+  const { selectedChannel, socket, rtcScreen, setRtcScreen, profileScreen } =
     useContext(WSContext);
   const [feedContentRequest, feedContentRequestData, feedContentLoading] =
     useFetch();
@@ -136,7 +137,9 @@ export default function Feed() {
         }}
       >
         {!rtcScreen && feedContentLoading && <span className="loader"></span>}
-        {rtcScreen ? (
+        {profileScreen ? (
+          <ProfileScreen profileId={profileScreen} />
+        ) : rtcScreen ? (
           <RtcScreen />
         ) : (
           messages[selectedChannel.id]?.map((element, index) => (

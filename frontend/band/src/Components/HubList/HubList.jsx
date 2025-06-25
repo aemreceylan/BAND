@@ -6,7 +6,14 @@ import "./HubList.css";
 import { WSContext } from "../../Contexts/WSProvider";
 
 export default function HubList() {
-  const { setLogout,logOutRequest } = useContext(WSContext);
+  const {
+    setLogout,
+    logOutRequest,
+    setContextMenu,
+    setProfileScreen,
+    profileId,
+    setSelectedChannel,
+  } = useContext(WSContext);
   return (
     <>
       <div id="hubList">
@@ -15,8 +22,30 @@ export default function HubList() {
             <div
               id="hubList-profile-button"
               onClick={() => {
-                logOutRequest({
-                  url: "api/log-out",
+                setProfileScreen(profileId);
+                setSelectedChannel({ id: "", name: "" });
+              }}
+              onContextMenu={(e) => {
+                setContextMenu({
+                  isVisible: true,
+                  coords: { x: e.pageX, y: e.pageY },
+                  items: [
+                    {
+                      text: "Profile Git",
+                      function: () => {
+                        setProfileScreen(profileId);
+                        setSelectedChannel({ id: "", name: "" });
+                      },
+                    },
+                    {
+                      text: "Çıkış Yap",
+                      function: () => {
+                        logOutRequest({
+                          url: "api/log-out",
+                        });
+                      },
+                    },
+                  ],
                 });
               }}
             >
