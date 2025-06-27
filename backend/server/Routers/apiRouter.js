@@ -12,6 +12,8 @@ import {
   createRateLimiter,
 } from "../utils.js";
 
+import { userList } from "../server.js";
+
 import config from "../config.js";
 
 const apiRouter = express.Router();
@@ -36,12 +38,39 @@ apiRouter.post("/get-profile", async (req, res) => {
   }
 });
 
-apiRouter.post("/set-user-settings", userAuthorization, async (req, res) => {
+apiRouter.post("/set-user-settings", async (req, res) => {
   switch (req.body.type) {
-    case "ban-client":
+    case "set-profile-photo":
       try {
-        await db.editUser(req.body.data);
-        res.status(201).json({ status: true, msg: "User banned" });
+        await db.editUser(
+          { _id: req.body.data.userId },
+          { profilePhotoURL: req.body.data.photoUrl }
+        );
+        await userList.getUsersFromDB();
+        userList.emitList();
+        res.status(201).json({
+          status: true,
+          msg: "The uploaded image is set as profile photo",
+        });
+        emitHubSections();
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: false, msg: "Error" });
+      }
+      break;
+    case "set-profile-banner":
+      try {
+        await db.editProfile(
+          { _id: req.body.data.profileId },
+          { bannerURL: req.body.data.photoUrl }
+        );
+        await userList.getUsersFromDB();
+        userList.emitList();
+        res.status(201).json({
+          status: true,
+          msg: "The uploaded image is set as profile banner",
+        });
+        emitHubSections();
       } catch (err) {
         console.log(err);
         res.status(500).json({ status: false, msg: "Error" });
@@ -249,6 +278,35 @@ apiRouter.post(
           res.status(500).json({ status: false, msg: "Error" });
         }
         break;
+      case "ban-client":
+        try {
+          await db.editUser({ _id: req.body.data }, { isBanned: true });
+          res.status(201).json({ status: true, msg: "User banned" });
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ status: false, msg: "Error" });
+        }
+        break;
+      case "set-userFileSystem":
+        try {
+          if (!(req.body.data === "enabled" || req.body.data === "disabled"))
+            throw new Error("Invalid userFileSystem value.");
+          const currentStatus = config.server.settings.userFileSystem.status
+            ? "enabled"
+            : "disabled";
+          if (req.body.data === currentStatus)
+            throw new Error("User file system status is already the same.");
+          config.server.settings.userFileSystem.status =
+            req.body.data === "enabled";
+          res.status(200).json({
+            status: true,
+            msg: "User file system status changed to " + req.body.data,
+          });
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ status: false, msg: "Error" });
+        }
+        break;
       default:
         res.status(400).json({ status: false, msg: "Invalid type" });
     }
@@ -269,7 +327,6 @@ apiRouter.get(
 apiRouter.post("/login", async (req, res) => {
   try {
     const result = await db.checkUser({ nick: req.body.nick });
-    console.log(result);
     if (result.isBanned) throw new Error("User banned.");
     await passwordVerification(result.password, req.body.password);
     const authToken = jwt.sign({ id: result.id }, config.jwt.secret);
@@ -277,6 +334,7 @@ apiRouter.post("/login", async (req, res) => {
     req.session.authToken = authToken;
     req.session.cookie.maxAge = 86400000 * 2;
     req.session.profileId = result.profile;
+    req.session.userId = result.id;
     res.cookie("authToken", authToken, {
       httpOnly: true,
       secure: config.server.https.status,
@@ -287,6 +345,7 @@ apiRouter.post("/login", async (req, res) => {
       msg: "Login successful",
       authToken: authToken,
       profileId: result.profile,
+      userId: result.id,
     });
   } catch (err) {
     res.status(400).json({ status: false, msg: "Login failed = " + err });
@@ -341,6 +400,7 @@ apiRouter.get("/session-check", (req, res) => {
       message: "Session check approved",
       authToken: req.session.authToken,
       profileId: req.session.profileId,
+      userId: req.session.userId,
     });
   else {
     res.status(401).json({ status: false, message: "Session check failed" });

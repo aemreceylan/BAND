@@ -12,6 +12,9 @@
 
 .usersElement-img {
   height: 2rem;
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  border-radius: 100%;
 }
 
 .usersElement-img img {

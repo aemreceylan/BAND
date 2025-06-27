@@ -41,6 +41,11 @@ export default function WSProvider({ children }) {
   const [contextMenu, setContextMenu] = useState({});
   const [profileScreen, setProfileScreen] = useState();
   const [profileId, setProfileId] = useState();
+  const [userId, setUserId] = useState();
+  const [userFileSystem, setUserFileSystem] = useState({
+    status: true,
+    open: false,
+  });
 
   const [csrfRequest, csrfRequestData] = useFetch();
   const [isAuthRequest, isAuthData] = useFetch();
@@ -58,9 +63,28 @@ export default function WSProvider({ children }) {
   ] = useCall(setConsumingStreams, setRtcMediaSettings);
 
   const [logOutRequest, logOutRequestData] = useFetch();
+  const [hubSettingsRequest, hubSettingsRequestData] = useFetch();
+  const [userSettingsRequest, userSettingsData] = useFetch();
+
+  useEffect(() => {}, [profileScreen]);
 
   useEffect(() => {
-  }, [profileScreen]);
+    if (userFileSystem) {
+      setHubSettings("set-userFileSystem", userFileSystem.status);
+    }
+  }, [userFileSystem]);
+
+  useEffect(() => {
+    if (hubSettingsRequestData) {
+      console.log(hubSettingsRequestData.msg);
+    }
+  }, [hubSettingsRequestData]);
+
+  useEffect(() => {
+    if (userSettingsData) {
+      console.log(userSettingsData.msg);
+    }
+  }, [userSettingsData]);
 
   useEffect(() => {
     if (logOutRequestData) {
@@ -170,6 +194,7 @@ export default function WSProvider({ children }) {
         setLogin(true);
         setAuthToken(isAuthData.authToken);
         setProfileId(isAuthData.profileId);
+        setUserId(isAuthData.userId);
         setSocket(
           io("localhost:3000", {
             auth: { authToken: isAuthData.authToken },
@@ -213,6 +238,28 @@ export default function WSProvider({ children }) {
     }
   }, [logout]);
 
+  function setUserSettings(type, data) {
+    userSettingsRequest({
+      url: "api/set-user-settings",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ type: type, data: data }),
+    });
+  }
+
+  function setHubSettings(type, data) {
+    hubSettingsRequest({
+      url: "api/set-hub-settings",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ type: type, data: data }),
+    });
+  }
+
   const contextValue = {
     login,
     setLogin,
@@ -253,6 +300,14 @@ export default function WSProvider({ children }) {
     setProfileScreen,
     setProfileId,
     profileId,
+    setUserSettings,
+    setHubSettings,
+    hubSettingsRequestData,
+    userSettingsData,
+    setUserId,
+    userId,
+    userFileSystem,
+    setUserFileSystem,
   };
 
   return (

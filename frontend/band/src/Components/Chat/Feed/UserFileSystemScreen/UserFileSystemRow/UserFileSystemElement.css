@@ -1,0 +1,35 @@
+.userFileSystem-element-list {
+  display: flex;
+  width: 100%;
+}
+
+.userFileSystem-element-list-header {
+  border-bottom: 1px solid var(--dark-font-light-gray);
+}
+
+.userFileSystem-files-element-list-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.userFileSystem-files-element-row:hover {
+  background-color: var(--dark-font-dark-gray);
+}
+
+.userFileSystem-files-fileName {
+  width: 70%;
+  text-align: left;
+  padding: 0.5rem 0 0.5rem 0.5rem;
+}
+
+.userFileSystem-files-fileSize {
+  width: 15%;
+  text-align: left;
+  padding: 0.5rem 0 0.5rem 0.5rem;
+}
+
+.userFileSystem-files-fileDate {
+  width: 15%;
+  text-align: left;
+  padding: 0.5rem 0 0.5rem 0.5rem;
+}

@@ -4,26 +4,13 @@ import { WSContext } from "../../../Contexts/WSProvider";
 import useFetch from "../../../hooks/useFetch";
 
 export default function UsersElement({ data }) {
-  const { setContextMenu, setProfileScreen, setSelectedChannel } =
-    useContext(WSContext);
-  const [userSettingsRequest, userSettingsData] = useFetch();
+  const {
+    setContextMenu,
+    setProfileScreen,
+    setSelectedChannel,
+    setHubSettings,
+  } = useContext(WSContext);
 
-  useEffect(() => {
-    if (userSettingsData) {
-      console.log(userSettingsData.msg);
-    }
-  }, [userSettingsData]);
-
-  function setUserSettings(type, req_data) {
-    userSettingsRequest({
-      url: "api/set-user-settings",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ type: type, data: req_data }),
-    });
-  }
   return (
     <>
       <div
@@ -43,7 +30,7 @@ export default function UsersElement({ data }) {
               {
                 text: "Kullanıcıyı Yasakla",
                 function: () => {
-                  setUserSettings("ban-client", data._id);
+                  setHubSettings("ban-client", data._id);
                 },
               },
             ],

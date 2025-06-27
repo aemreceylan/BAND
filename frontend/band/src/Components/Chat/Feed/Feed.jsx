@@ -5,13 +5,20 @@ import { WSContext } from "../../../Contexts/WSProvider";
 import useFetch from "../../../hooks/useFetch";
 import RtcScreen from "./RtcScreen/RtcScreen";
 import ProfileScreen from "./ProfileScreen/ProfileScreen";
+import UserFileSystemScreen from "./UserFileSystemScreen/UserFileSystemScreen";
 
 export default function Feed() {
   const feedRef = useRef();
   const messageAmountRef = useRef(25);
   const scrollData = useRef();
-  const { selectedChannel, socket, rtcScreen, setRtcScreen, profileScreen } =
-    useContext(WSContext);
+  const {
+    selectedChannel,
+    socket,
+    rtcScreen,
+    setRtcScreen,
+    profileScreen,
+    userFileSystem,
+  } = useContext(WSContext);
   const [feedContentRequest, feedContentRequestData, feedContentLoading] =
     useFetch();
   const [messages, setMessages] = useState({});
@@ -139,6 +146,8 @@ export default function Feed() {
         {!rtcScreen && feedContentLoading && <span className="loader"></span>}
         {profileScreen ? (
           <ProfileScreen profileId={profileScreen} />
+        ) : userFileSystem.open ? (
+          <UserFileSystemScreen />
         ) : rtcScreen ? (
           <RtcScreen />
         ) : (

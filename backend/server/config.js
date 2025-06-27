@@ -17,6 +17,10 @@ const config = {
       rateLimit: {
         status: false,
       },
+      userFileSystem: {
+        status: true,
+        storageLimit: 2 * 1024 * 1024 * 1024,
+      },
     },
   },
   database: {

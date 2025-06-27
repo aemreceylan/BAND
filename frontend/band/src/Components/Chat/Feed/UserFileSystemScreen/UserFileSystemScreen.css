@@ -1,0 +1,127 @@
+#userFileSystem-container {
+  width: 100%;
+  height: 100%;
+}
+
+#userFileSystem {
+  width: 85%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1), 0 1.5px 6px rgba(0, 0, 0, 0.08);
+  background-color: var(--dark-background-medium-gray);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+#userFileSystem-topBar {
+  display: flex;
+  padding: 2rem 2rem 1rem 2rem;
+}
+
+#userFileSystem-topBar-path {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+#userFileSystem-topBar-path-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+  color: var(--dark-font-medium-gray);
+}
+
+#userFileSystem-topBar-path-path {
+  color: var(--dark-font-medium-gray);
+  font-size: 1.5rem;
+}
+
+#userFileSystem-topBar-path-icon > svg {
+  width: 100%;
+  height: 100%;
+}
+
+#userFileSystem-topBar-path-icon:hover {
+  color: var(--dark-font-light-gray);
+  border-radius: 50%;
+}
+
+#userFileSystem-topBar-path-icon:active {
+  transform: scale(1.1);
+}
+
+#userFileSystem-topBar-style {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+  margin-right: 3rem;
+}
+
+#userFileSystem-topBar-style > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  cursor: pointer;
+  color: var(--dark-font-medium-gray);
+}
+
+#userFileSystem-topBar-style > div:hover {
+  color: var(--dark-font-light-gray);
+  background-color: var(--dark-font-dark-gray);
+  border-radius: 50%;
+}
+
+#userFileSystem-topBar-style > div:active {
+  transform: scale(1.1);
+}
+
+#userFileSystem-topBar-style > div > svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+#userFileSystem-topBar-new {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#userFileSystem-topBar-new > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  cursor: pointer;
+  color: var(--dark-font-medium-gray);
+}
+
+#userFileSystem-topBar-new > div:hover {
+  color: var(--dark-font-light-gray);
+  background-color: var(--dark-font-dark-gray);
+  border-radius: 50%;
+}
+
+#userFileSystem-topBar-new > div:active {
+  transform: scale(1.1);
+}
+
+#userFileSystem-topBar-new > div > svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+#userFileSystem-files {
+  background-color: var(--dark-background-light-gray);
+  padding: 2rem;
+  width: 100%;
+  color: var(--dark-font-light-gray);
+}
+
+

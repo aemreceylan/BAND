@@ -81,6 +81,53 @@ app.use(
 );
 app.use(csrf());
 
+export const userList = (() => {
+  const list = new Map();
+  async function getUsersFromDB() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const temp = new Map(list);
+        const result = await User.find({ isBanned: false }).select({
+          password: 0,
+        });
+        for (let i of result) {
+          list.set(i.id, {
+            ...i._doc,
+            isOnline: temp.has(i.id) ? temp.get(i.id).isOnline : false,
+          });
+        }
+        resolve();
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
+  function setUserOnline(id) {
+    list.set(id, {
+      ...list.get(id),
+      isOnline: true,
+    });
+    db.editUser({ _id: id }, { isOnline: true });
+  }
+  function setUserOffline(id) {
+    list.set(id, {
+      ...list.get(id),
+      isOnline: false,
+    });
+    db.editUser({ _id: id }, { isOnline: false });
+  }
+  function emitList() {
+    io.emit("userList", Array.from(list.entries()));
+  }
+  return {
+    getUsersFromDB,
+    setUserOnline,
+    setUserOffline,
+    emitList,
+  };
+})();
+
 (async () => {
   await db.init();
 
@@ -91,42 +138,6 @@ app.use(csrf());
     res.status(404).end("Error");
   });
 
-  const userList = (() => {
-    const list = new Map();
-    async function getUsersFromDB() {
-      try {
-        const result = await User.find({ isBanned: false }).select({
-          password: 0,
-        });
-        for (let i of result) {
-          list.set(i.id, { ...i._doc, isOnline: false });
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    }
-    function setUserOnline(id) {
-      list.set(id, {
-        ...list.get(id),
-        isOnline: true,
-      });
-    }
-    function setUserOffline(id) {
-      list.set(id, {
-        ...list.get(id),
-        isOnline: false,
-      });
-    }
-    function emitList() {
-      io.emit("userList", Array.from(list.entries()));
-    }
-    return {
-      getUsersFromDB,
-      setUserOnline,
-      setUserOffline,
-      emitList,
-    };
-  })();
   userList.getUsersFromDB();
 
   io.use(async (socket, next) => {

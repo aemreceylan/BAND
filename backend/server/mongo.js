@@ -216,11 +216,11 @@ const db = (() => {
     });
   }
 
-  function editUser(data) {
+  function editUser(query, data) {
     return new Promise(async (resolve, reject) => {
       try {
-        await User.findByIdAndUpdate(data, {
-          $set: { isBanned: true },
+        await User.findOneAndUpdate(query, {
+          $set: data,
         });
         resolve();
       } catch (err) {
@@ -230,7 +230,21 @@ const db = (() => {
     });
   }
 
-  function getProfile(query,populate={}) {
+  function editProfile(query, data) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        await Profile.findOneAndUpdate(query, {
+          $set: data,
+        });
+        resolve();
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
+
+  function getProfile(query, populate = {}) {
     return new Promise(async (resolve, reject) => {
       try {
         const result = await Profile.find(query).populate(populate);
@@ -258,6 +272,7 @@ const db = (() => {
     getInviteLinks,
     editUser,
     getProfile,
+    editProfile,
   };
 })();
 

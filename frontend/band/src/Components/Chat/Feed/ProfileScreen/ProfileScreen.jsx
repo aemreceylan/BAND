@@ -4,6 +4,7 @@ import useFetch from "../../../../hooks/useFetch";
 
 export default function ProfileScreen({ profileId }) {
   const [profileInfos, setProfileInfos] = useState();
+
   const [profileRequest, profileRequestData] = useFetch();
   useEffect(() => {
     if (profileId) {
@@ -36,11 +37,11 @@ export default function ProfileScreen({ profileId }) {
             <div
               id="profileScreen-header-banner"
               style={{
-                backgroundImage: `url(${
+                backgroundImage: `url("${
                   profileInfos && profileInfos.bannerURL != ""
                     ? profileInfos.bannerURL
                     : "img/no-profile-banner.png"
-                })`,
+                }")`,
               }}
             ></div>
             <div id="profileScreen-header-info">
@@ -49,7 +50,7 @@ export default function ProfileScreen({ profileId }) {
                   <img
                     src={
                       profileInfos && profileInfos.user.profilePhotoURL != ""
-                        ? profileInfos.profilePhotoURL
+                        ? profileInfos.user.profilePhotoURL
                         : "img/no-profile-photo.png"
                     }
                   />

@@ -67,16 +67,54 @@ fileRouter.post("/send-file", createRateLimiter(1000 * 60, 1), (req, res) => {
       return res.status(400).json({ status: false, msg: "No files uploaded" });
     }
 
-    res.json({
-      status: true,
-      msg: "Files uploaded successfully",
-      data: req.files.map((file) => ({
+    let info = {};
+    try {
+      info = JSON.parse(req.body.info);
+      let targetFolder = "";
+      if (info.type === "chat") targetFolder = "chat";
+      else if (info.type === "profile") targetFolder = "profile";
+      else if (info.type === "userFileSystem") targetFolder = "userFileSystem";
+      else throw new Error("Invalid info field");
+    } catch (err) {
+      console.log(err);
+      return res.status(400).json({ status: false, msg: "Invalid info field" });
+    }
+
+    const movedFiles = [];
+    for (const file of req.files) {
+      const oldPath = file.path;
+      const newDir = path.resolve(
+        path.dirname(import.meta.dirname) +
+          `/private/assets/client_uploads/${targetFolder}`
+      );
+      if (!fs.existsSync(newDir)) {
+        fs.mkdirSync(newDir, { recursive: true });
+      }
+      const ext = path.extname(file.filename);
+      let name = path.basename(file.filename, ext);
+      let new_name = name;
+      let counter = 0;
+      let newPath = path.join(newDir, new_name + ext);
+      while (fs.existsSync(newPath)) {
+        new_name = name + `(${++counter})`;
+        newPath = path.join(newDir, new_name + ext);
+      }
+      fs.renameSync(oldPath, newPath);
+      movedFiles.push({
         originalName: Buffer(file.originalname, "latin1").toString("utf-8"),
         url: `http://${config.server.http.ip}:${
           config.server.http.port
-        }/file/assets/client_uploads/${encodeURI(file.filename)}`,
+        }/file/assets/client_uploads/${targetFolder}/${encodeURI(
+          new_name + ext
+        )}`,
         size: file.size,
-      })),
+      });
+    }
+
+    res.json({
+      status: true,
+      msg: "Files uploaded and moved successfully",
+      data: movedFiles,
     });
   });
 });
@@ -85,7 +123,6 @@ fileRouter.get("/*joker", (req, res) => {
   const fixed_path = path.resolve(
     path.dirname(import.meta.dirname) + "/private/" + decodeURI(req.url)
   );
-  console.log(fixed_path);
 
   res.sendFile(fixed_path, (err) => {
     if (err) {

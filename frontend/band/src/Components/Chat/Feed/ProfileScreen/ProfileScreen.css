@@ -42,6 +42,7 @@
   overflow: hidden;
   width: 4rem;
   aspect-ratio: 1/1;
+  border-radius: 100%;
 }
 
 #profileScreen-header-info-row1-profilePhoto img {

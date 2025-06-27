@@ -11,6 +11,8 @@ export default function Channel({ data }) {
     setActiveRTC,
     profileScreen,
     setProfileScreen,
+    userFileSystem,
+    setUserFileSystem,
   } = useContext(WSContext);
   return (
     <>
@@ -41,6 +43,8 @@ export default function Channel({ data }) {
               });
           }
           if (profileScreen) setProfileScreen();
+          if (userFileSystem.open)
+            setUserFileSystem((prev) => ({ ...prev, open: false }));
         }}
       >
         <div className="hub-category-channelList-channel-title">

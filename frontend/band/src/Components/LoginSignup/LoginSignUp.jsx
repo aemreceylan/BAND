@@ -15,6 +15,7 @@ export default function LoginSignup() {
     inviteToken,
     setInviteToken,
     setProfileId,
+    setUserId,
   } = useContext(WSContext);
   const [signupRequest, signupRequestData] = useFetch();
   const [loginRequest, loginRequestData] = useFetch();
@@ -38,6 +39,7 @@ export default function LoginSignup() {
         setLogin(true);
         setAuthToken(loginRequestData.authToken);
         setProfileId(loginRequestData.profileId);
+        setUserId(loginRequestData.userId);
         console.log(loginRequestData.msg);
         setSocket(
           io("localhost:3000", {

@@ -6,6 +6,9 @@ import Modal from "../UI/Modal/Modal";
 import { WSContext } from "../../Contexts/WSProvider";
 import useUserValidation from "../../hooks/useUserValidation.js";
 import useFetch from "../../hooks/useFetch.js";
+import Module from "./Module/Module.jsx";
+
+import config from "../../../../../backend/server/config.js";
 
 function RtcModal({ children }) {
   return (
@@ -47,22 +50,50 @@ export default function Hub() {
     consumingStreams,
     closeProduce,
     setConsumingStreams,
+    setUserSettings,
+    setHubSettings,
+    userId,
+    profileId,
+    userFileSystem,
+    setUserFileSystem,
   } = useContext(WSContext);
   const [isOpen, setIsOpen] = useState(true);
   const [settingsPanelIsOpen, setSettingsPanelIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
   const [isApproved, setIsApproved] = useState(false);
   const [userValidation, userValidationResult] = useUserValidation();
-  const [hubSettingsRequest, hubSettingsRequestData] = useFetch();
   const [createInviteLinkRequest, createInviteLinkData] = useFetch();
   const [getInviteLinksRequest, getInviteLinksData] = useFetch();
   const [selectedCategoryOption, setSelectedCategoryOption] = useState();
   const [inviteLinks, setInviteLinks] = useState([]);
   const [rtcDevices, setRtcDevices] = useState();
   const [selectedInviteType, setSelectedInviteType] = useState("inviteOnly");
+  const [uplodadedProfileFile, setUplodadedProfileFile] = useState();
+  const [sendProfileFileRequest, sendProfileFileData, uploading] = useFetch();
+
   const camVideoRef = useRef();
   const micAudioRef = useRef();
   const profilePhotoInputRef = useRef();
+  const bannerInputRef = useRef();
+
+  useEffect(() => {
+    if (sendProfileFileData) {
+      if (sendProfileFileData.status) {
+        if (uplodadedProfileFile[1] === "photo")
+          setUserSettings("set-profile-photo", {
+            userId: userId,
+            photoUrl: sendProfileFileData.data[0].url,
+          });
+        if (uplodadedProfileFile[1] === "banner")
+          setUserSettings("set-profile-banner", {
+            profileId: profileId,
+            photoUrl: sendProfileFileData.data[0].url,
+          });
+      }
+      console.log(sendProfileFileData.msg);
+    }
+  }, [sendProfileFileData]);
+
   useEffect(() => {
     if (!selectedCategoryOption && sectionList && sectionList.length > 0)
       setSelectedCategoryOption(sectionList[0]._id);
@@ -293,14 +324,6 @@ export default function Hub() {
   }, [userValidationResult]);
 
   useEffect(() => {
-    if (hubSettingsRequestData) {
-      if (hubSettingsRequestData.status) {
-        console.log(hubSettingsRequestData.msg);
-      }
-    }
-  }, [hubSettingsRequestData]);
-
-  useEffect(() => {
     if (createInviteLinkData) {
       if (createInviteLinkData.status) {
       }
@@ -322,17 +345,6 @@ export default function Hub() {
       setHubSettings("set-inviteType", selectedInviteType);
     }
   }, [selectedInviteType]);
-
-  function setHubSettings(type, data) {
-    hubSettingsRequest({
-      url: "api/set-hub-settings",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ type: type, data: data }),
-    });
-  }
 
   return (
     <>
@@ -394,6 +406,28 @@ export default function Hub() {
           </div>
         </Panel>
         <div id="hub-categories">
+          {userFileSystem.status && (
+            <Module
+              data={{
+                name: "Kullanıcı Dosya Sistemi",
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="1em"
+                    height="1em"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M12.643 15C13.979 15 15 13.845 15 12.5V5H1v7.5C1 13.845 2.021 15 3.357 15zM5.5 7h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1M.8 1a.8.8 0 0 0-.8.8V3a.8.8 0 0 0 .8.8h14.4A.8.8 0 0 0 16 3V1.8a.8.8 0 0 0-.8-.8z" />
+                  </svg>
+                ),
+                onClick: () => {
+                  setSelectedChannel({ id: "", name: "" });
+                  setUserFileSystem((prev) => ({ ...prev, open: true }));
+                },
+              }}
+            />
+          )}
           {sectionList?.map((element, index) => (
             <Category key={index} data={element} />
           ))}
@@ -550,22 +584,132 @@ export default function Hub() {
                     className="hubSettings-settingContainer"
                   >
                     <div id="hubSettings-container-content-personalSettings-profileSettings-profilePhoto">
-                      <img src="" />
-                      <div id="hubSettings-container-content-personalSettings-profileSettings-profilePhoto-button" onClick={()=>{
-                        profilePhotoInputRef.current.click();
-                      }}>
-                        <span>Fotoğraf Seç</span>
+                      <img
+                        src={
+                          uplodadedProfileFile &&
+                          uplodadedProfileFile[1] === "photo"
+                            ? URL.createObjectURL(uplodadedProfileFile[0])
+                            : ""
+                        }
+                        onClick={() => {
+                          if (
+                            uplodadedProfileFile &&
+                            uplodadedProfileFile[1] === "photo"
+                          ) {
+                            const formData = new FormData();
+                            formData.append(
+                              "file",
+                              uplodadedProfileFile[0],
+                              uplodadedProfileFile[0].name
+                            );
+                            formData.append(
+                              "info",
+                              JSON.stringify({
+                                type: "profile",
+                              })
+                            );
+                            sendProfileFileRequest({
+                              url: "file/send-file",
+                              method: "POST",
+                              body: formData,
+                            });
+                          } else {
+                            setUserSettings("set-profile-photo", {
+                              userId: userId,
+                              photoUrl: "",
+                            });
+                          }
+                        }}
+                      />
+                      <div
+                        id="hubSettings-container-content-personalSettings-profileSettings-profilePhoto-button"
+                        onClick={() => {
+                          profilePhotoInputRef.current.click();
+                        }}
+                      >
+                        <span>
+                          {uplodadedProfileFile &&
+                          uplodadedProfileFile[1] === "photo"
+                            ? "Başka Bir Fotoğraf Seç"
+                            : "Fotoğraf Seç"}
+                        </span>
                       </div>
                       <input
                         ref={profilePhotoInputRef}
                         id="hubSettings-container-content-personalSettings-profileSettings-profilePhoto-input"
                         type="file"
-                        onChange={(e)=>{
-                          const file = e.target.files[0];
-                          
+                        accept="image/*"
+                        onChange={(e) => {
+                          setUplodadedProfileFile([e.target.files[0], "photo"]);
                         }}
                       />
                     </div>
+                    <div id="hubSettings-container-content-personalSettings-profileSettings-banner">
+                      <img
+                        src={
+                          uplodadedProfileFile &&
+                          uplodadedProfileFile[1] === "banner"
+                            ? URL.createObjectURL(uplodadedProfileFile[0])
+                            : ""
+                        }
+                        onClick={() => {
+                          if (
+                            uplodadedProfileFile &&
+                            uplodadedProfileFile[1] === "banner"
+                          ) {
+                            const formData = new FormData();
+                            formData.append(
+                              "file",
+                              uplodadedProfileFile[0],
+                              uplodadedProfileFile[0].name
+                            );
+                            formData.append(
+                              "info",
+                              JSON.stringify({
+                                type: "profile",
+                              })
+                            );
+                            sendProfileFileRequest({
+                              url: "file/send-file",
+                              method: "POST",
+                              body: formData,
+                            });
+                          } else {
+                            setUserSettings("set-profile-banner", {
+                              profileId: profileId,
+                              photoUrl: "",
+                            });
+                          }
+                        }}
+                      />
+                      <div
+                        id="hubSettings-container-content-personalSettings-profileSettings-banner-button"
+                        onClick={() => {
+                          bannerInputRef.current.click();
+                        }}
+                      >
+                        <span>
+                          {uplodadedProfileFile &&
+                          uplodadedProfileFile[1] === "banner"
+                            ? "Başka Bir Banner Seç"
+                            : "Banner Seç"}
+                        </span>
+                      </div>
+                      <input
+                        ref={bannerInputRef}
+                        id="hubSettings-container-content-personalSettings-profileSettings-banner-input"
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          setUplodadedProfileFile([
+                            e.target.files[0],
+                            "banner",
+                          ]);
+                        }}
+                      />
+                    </div>
+                    <div id="hubSettings-container-content-personalSettings-profileSettings-component"></div>
                   </div>
                 </div>
               ) : selectedOption == 1 && !isApproved ? (
@@ -844,6 +988,32 @@ export default function Hub() {
                               </div>
                             ))}
                       </div>
+                    </div>
+                    <div className="hubSettings-container-divider">
+                      Kullanıcı Dosya Sistemi Ayarları
+                    </div>
+                    <div
+                      id="hubSettings-container-content-hubSettings-userFileSystem"
+                      className="hubSettings-settingContainer"
+                    >
+                      <form id="userFileSystemType-form">
+                        <label htmlFor="userFileSystemType-select">
+                          Kullanıcı Dosya Sistemi
+                        </label>
+                        <select
+                          name="userFileSystem"
+                          id="userFileSystemType-select"
+                          onChange={(e) => {
+                            setUserFileSystem((prev) => ({
+                              ...prev,
+                              status: e.target.value,
+                            }));
+                          }}
+                        >
+                          <option value="enabled">Açık</option>
+                          <option value="disabled">Kapalı</option>
+                        </select>
+                      </form>
                     </div>
                   </div>
                 </>

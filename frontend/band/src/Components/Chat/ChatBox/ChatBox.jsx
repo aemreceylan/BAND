@@ -40,6 +40,12 @@ export default function ChatBox() {
       uploadedFiles.forEach((element) => {
         formData.append("file", element, element.name);
       });
+      formData.append(
+        "info",
+        JSON.stringify({
+          type: "chat",
+        })
+      );
       sendFilesRequest({
         url: "file/send-file",
         method: "POST",
