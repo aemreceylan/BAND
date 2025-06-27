@@ -2,6 +2,7 @@ import { createContext, useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import useFetch from "../hooks/useFetch";
 import useCall from "../hooks/useCall";
+import { use } from "react";
 
 export const WSContext = createContext();
 
@@ -65,14 +66,15 @@ export default function WSProvider({ children }) {
   const [logOutRequest, logOutRequestData] = useFetch();
   const [hubSettingsRequest, hubSettingsRequestData] = useFetch();
   const [userSettingsRequest, userSettingsData] = useFetch();
+  const [userFileSystemRequest, userFileSystemData] = useFetch();
 
   useEffect(() => {}, [profileScreen]);
 
   useEffect(() => {
-    if (userFileSystem) {
-      setHubSettings("set-userFileSystem", userFileSystem.status);
+    if (userFileSystemData) {
+      console.log(userFileSystemData.msg);
     }
-  }, [userFileSystem]);
+  }, [userFileSystemData]);
 
   useEffect(() => {
     if (hubSettingsRequestData) {
@@ -260,6 +262,17 @@ export default function WSProvider({ children }) {
     });
   }
 
+  function handleUserFileSystem(type, data) {
+    userFileSystemRequest({
+      url: "file/user-file-system",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ type: type, data: data }),
+    });
+  }
+
   const contextValue = {
     login,
     setLogin,
@@ -308,6 +321,8 @@ export default function WSProvider({ children }) {
     userId,
     userFileSystem,
     setUserFileSystem,
+    handleUserFileSystem,
+    userFileSystemData,
   };
 
   return (

@@ -117,11 +117,23 @@
   height: 1.5rem;
 }
 
-#userFileSystem-files {
+.userFileSystem-topBar-style-selected {
+    background-color: var(--dark-background-light-gray);
+    border: 1px solid var(--dark-font-dark-gray);
+    border-radius: 50%;
+}
+
+#userFileSystem-files-list {
   background-color: var(--dark-background-light-gray);
   padding: 2rem;
   width: 100%;
   color: var(--dark-font-light-gray);
 }
 
-
+#userFileSystem-files-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 2rem;
+  background-color: var(--dark-background-light-gray);
+}

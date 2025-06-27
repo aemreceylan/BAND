@@ -119,6 +119,16 @@ fileRouter.post("/send-file", createRateLimiter(1000 * 60, 1), (req, res) => {
   });
 });
 
+fileRouter.post("/user-file-system", (req, res) => {
+  switch (req.body.type) {
+    case "starting-check":
+      break;
+    default:
+      res.status(400).json({ status: false, msg: "Invalid type" });
+      break;
+  }
+});
+
 fileRouter.get("/*joker", (req, res) => {
   const fixed_path = path.resolve(
     path.dirname(import.meta.dirname) + "/private/" + decodeURI(req.url)

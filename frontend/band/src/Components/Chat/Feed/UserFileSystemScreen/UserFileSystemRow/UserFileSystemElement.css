@@ -3,7 +3,7 @@
   width: 100%;
 }
 
-.userFileSystem-element-list-header {
+.userFileSystem-files-element-list-header {
   border-bottom: 1px solid var(--dark-font-light-gray);
 }
 
@@ -12,24 +12,45 @@
   transition: background-color 0.2s ease;
 }
 
-.userFileSystem-files-element-row:hover {
+.userFileSystem-files-element-list-row:hover {
   background-color: var(--dark-font-dark-gray);
 }
 
-.userFileSystem-files-fileName {
-  width: 70%;
+.userFileSystemElement-info-list {
   text-align: left;
   padding: 0.5rem 0 0.5rem 0.5rem;
+  overflow-x: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.userFileSystem-files-fileSize {
-  width: 15%;
-  text-align: left;
-  padding: 0.5rem 0 0.5rem 0.5rem;
+.userFileSystem-element-grid {
+  width: 20%;
+  aspect-ratio: 10/8;
+  border: 1px solid var(--dark-font-light-gray);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: var(--dark-font-light-gray);
+  gap: 1rem;
 }
 
-.userFileSystem-files-fileDate {
-  width: 15%;
-  text-align: left;
-  padding: 0.5rem 0 0.5rem 0.5rem;
+.userFileSystem-element-grid:hover {
+  background-color: var(--dark-font-dark-gray);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.userFileSystem-element-icon {
+  width: 30%;
+  aspect-ratio: 1/1;
+}
+
+.userFileSystem-element-icon > svg {
+  width: 100%;
+  height: 100%;
 }

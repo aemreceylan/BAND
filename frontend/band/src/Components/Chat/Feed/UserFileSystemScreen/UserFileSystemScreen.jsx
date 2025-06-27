@@ -1,7 +1,25 @@
 import "./UserFileSystemScreen.css";
 import UserFileSystemElement from "./UserFileSystemRow/UserFileSystemElemenent";
 
+import { useEffect, useState, useContext } from "react";
+import { WSContext } from "../../../../Contexts/WSProvider";
+
 export default function UserFileSystemScreen() {
+  const { handleUserFileSystem, userId, userFileSystemData } =
+    useContext(WSContext);
+  const [selectedStyle, setSelectedStyle] = useState("list");
+  useEffect(() => {
+    handleUserFileSystem("starting-check");
+  }, []);
+
+  useEffect(() => {
+    if (userFileSystemData) {
+      if (userFileSystemData.status) {
+      }
+      console.log(userFileSystemData.msg);
+    }
+  }, [userFileSystemData]);
+
   return (
     <>
       <div id="userFileSystem-container">
@@ -25,7 +43,16 @@ export default function UserFileSystemScreen() {
               </div>
             </div>
             <div id="userFileSystem-topBar-style">
-              <div id="userFileSystem-topBar-style-list">
+              <div
+                id="userFileSystem-topBar-style-list"
+                className={
+                  selectedStyle === "list"
+                    ? "userFileSystem-topBar-style-selected"
+                    : ""
+                }
+                title="Liste Görünümü"
+                onClick={() => setSelectedStyle("list")}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="1em"
@@ -39,7 +66,16 @@ export default function UserFileSystemScreen() {
                   />
                 </svg>
               </div>
-              <div id="userFileSystem-topBar-style-grid">
+              <div
+                id="userFileSystem-topBar-style-grid"
+                title="Izgara Görünümü"
+                className={
+                  selectedStyle === "grid"
+                    ? "userFileSystem-topBar-style-selected"
+                    : ""
+                }
+                onClick={() => setSelectedStyle("grid")}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="1em"
@@ -52,7 +88,10 @@ export default function UserFileSystemScreen() {
               </div>
             </div>
             <div id="userFileSystem-topBar-new">
-              <div id="userFileSystem-topBar-new-folder-button">
+              <div
+                id="userFileSystem-topBar-new-folder-button"
+                title="Yeni Klasör"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="1rem"
@@ -64,7 +103,10 @@ export default function UserFileSystemScreen() {
                   <path d="M13.5 9a.5.5 0 0 1 .5.5V11h1.5a.5.5 0 1 1 0 1H14v1.5a.5.5 0 1 1-1 0V12h-1.5a.5.5 0 0 1 0-1H13V9.5a.5.5 0 0 1 .5-.5" />
                 </svg>
               </div>
-              <div id="userFileSystem-topBar-new-file-button">
+              <div
+                id="userFileSystem-topBar-new-file-button"
+                title="Yeni Dosya"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="1rem"
@@ -77,46 +119,86 @@ export default function UserFileSystemScreen() {
               </div>
             </div>
           </div>
-          <div id="userFileSystem-files">
+          <div
+            id={
+              selectedStyle == "list"
+                ? "userFileSystem-files-list"
+                : selectedStyle == "grid"
+                ? "userFileSystem-files-grid"
+                : ""
+            }
+          >
+            {selectedStyle == "list" && (
+              <UserFileSystemElement
+                data={{
+                  file: [
+                    ["Adı", "70%"],
+                    ["Boyutu", "15%"],
+                    ["Son Değiştirme Tarihi", "15%"],
+                  ],
+                  isHeader: true,
+                  type: selectedStyle,
+                }}
+              />
+            )}
             <UserFileSystemElement
               data={{
-                file: {
-                  name: "Adı",
-                  size: "Boyutu",
-                  date: "Son Değiştirme Tarihi",
-                },
-                isHeader: true,
-                type: "list",
+                file: [
+                  ["example.jpg", "70%"],
+                  ["1.2 MB", "15%"],
+                  ["2023-10-01", "15%"],
+                ],
+                type: selectedStyle,
               }}
             />
             <UserFileSystemElement
               data={{
-                file: {
-                  name: "example.txt",
-                  size: "1.2 MB",
-                  date: "2023-10-01",
-                },
-                type: "list",
+                file: [
+                  ["example.docx", "70%"],
+                  ["1.2 MB", "15%"],
+                  ["2023-10-01", "15%"],
+                ],
+                type: selectedStyle,
               }}
             />
             <UserFileSystemElement
               data={{
-                file: {
-                  name: "example.txt",
-                  size: "1.2 MB",
-                  date: "2023-10-01",
-                },
-                type: "list",
+                file: [
+                  ["example.mp3", "70%"],
+                  ["1.2 MB", "15%"],
+                  ["2023-10-01", "15%"],
+                ],
+                type: selectedStyle,
               }}
             />
             <UserFileSystemElement
               data={{
-                file: {
-                  name: "example.txt",
-                  size: "1.2 MB",
-                  date: "2023-10-01",
-                },
-                type: "list",
+                file: [
+                  ["example.mp4", "70%"],
+                  ["1.2 MB", "15%"],
+                  ["2023-10-01", "15%"],
+                ],
+                type: selectedStyle,
+              }}
+            />
+            <UserFileSystemElement
+              data={{
+                file: [
+                  ["example.txt", "70%"],
+                  ["1.2 MB", "15%"],
+                  ["2023-10-01", "15%"],
+                ],
+                type: selectedStyle,
+              }}
+            />
+            <UserFileSystemElement
+              data={{
+                file: [
+                  ["example.txt", "70%"],
+                  ["1.2 MB", "15%"],
+                  ["2023-10-01", "15%"],
+                ],
+                type: selectedStyle,
               }}
             />
           </div>
