@@ -162,6 +162,26 @@ fileRouter.post("/user-file-system", async (req, res) => {
           .json({ status: false, msg: "User file system error occurred" });
       }
       break;
+    case "create-folder":
+      try {
+        result = await db.createFile({
+          ownerId: req.session.userId,
+          type: "folder",
+          name: req.body.name,
+          parentId: req.body.parentId,
+        });
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: false, msg: "Error creating folder" });
+      }
+      break;
+    case "create-file":
+      try {
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: false, msg: "Error creating folder" });
+      }
+      break;
     default:
       res.status(400).json({ status: false, msg: "Invalid type" });
       break;
