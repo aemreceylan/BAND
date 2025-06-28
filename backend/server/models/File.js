@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const fileSchema = new Schema(
+const fileSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -19,7 +19,7 @@ const fileSchema = new Schema(
       index: true,
     },
     parentId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "File",
       default: null,
       index: true,
@@ -34,7 +34,7 @@ const fileSchema = new Schema(
     },
     URL: {
       type: String,
-      default: "",
+      default: null,
     },
   },
   {

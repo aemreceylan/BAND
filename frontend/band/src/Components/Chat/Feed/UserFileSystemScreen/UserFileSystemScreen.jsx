@@ -5,9 +5,10 @@ import { useEffect, useState, useContext } from "react";
 import { WSContext } from "../../../../Contexts/WSProvider";
 
 export default function UserFileSystemScreen() {
-  const { handleUserFileSystem, userId, userFileSystemData } =
-    useContext(WSContext);
+  const { handleUserFileSystem, userFileSystemData } = useContext(WSContext);
   const [selectedStyle, setSelectedStyle] = useState("list");
+  const [fileList, setFileList] = useState();
+  const [fileId, setFileId] = useState();
   useEffect(() => {
     handleUserFileSystem("starting-check");
   }, []);
@@ -15,6 +16,8 @@ export default function UserFileSystemScreen() {
   useEffect(() => {
     if (userFileSystemData) {
       if (userFileSystemData.status) {
+        setFileList(userFileSystemData.data.fileList);
+        setFileId(userFileSystemData.data.fileId);
       }
       console.log(userFileSystemData.msg);
     }
@@ -91,6 +94,9 @@ export default function UserFileSystemScreen() {
               <div
                 id="userFileSystem-topBar-new-folder-button"
                 title="Yeni Klasör"
+                onClick={() => {
+                  handleUserFileSystem("new-folder", { fileId });
+                }}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -141,66 +147,19 @@ export default function UserFileSystemScreen() {
                 }}
               />
             )}
-            <UserFileSystemElement
-              data={{
-                file: [
-                  ["example.jpg", "70%"],
-                  ["1.2 MB", "15%"],
-                  ["2023-10-01", "15%"],
-                ],
-                type: selectedStyle,
-              }}
-            />
-            <UserFileSystemElement
-              data={{
-                file: [
-                  ["example.docx", "70%"],
-                  ["1.2 MB", "15%"],
-                  ["2023-10-01", "15%"],
-                ],
-                type: selectedStyle,
-              }}
-            />
-            <UserFileSystemElement
-              data={{
-                file: [
-                  ["example.mp3", "70%"],
-                  ["1.2 MB", "15%"],
-                  ["2023-10-01", "15%"],
-                ],
-                type: selectedStyle,
-              }}
-            />
-            <UserFileSystemElement
-              data={{
-                file: [
-                  ["example.mp4", "70%"],
-                  ["1.2 MB", "15%"],
-                  ["2023-10-01", "15%"],
-                ],
-                type: selectedStyle,
-              }}
-            />
-            <UserFileSystemElement
-              data={{
-                file: [
-                  ["example.txt", "70%"],
-                  ["1.2 MB", "15%"],
-                  ["2023-10-01", "15%"],
-                ],
-                type: selectedStyle,
-              }}
-            />
-            <UserFileSystemElement
-              data={{
-                file: [
-                  ["example.txt", "70%"],
-                  ["1.2 MB", "15%"],
-                  ["2023-10-01", "15%"],
-                ],
-                type: selectedStyle,
-              }}
-            />
+            {fileList?.map((file, i) => {
+              <UserFileSystemElement
+                key={i}
+                data={{
+                  file: [
+                    [file.name, "70%"],
+                    [file.size, "15%"],
+                    [file.updateAt, "15%"],
+                  ],
+                  type: selectedStyle,
+                }}
+              />;
+            })}
           </div>
         </div>
       </div>

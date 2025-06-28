@@ -5,6 +5,8 @@ import fs from "fs";
 import config from "../config.js";
 import { createRateLimiter } from "../utils.js";
 
+import db from "../mongo.js";
+
 const fileRouter = express.Router();
 
 const storage = multer.diskStorage({
@@ -119,9 +121,46 @@ fileRouter.post("/send-file", createRateLimiter(1000 * 60, 1), (req, res) => {
   });
 });
 
-fileRouter.post("/user-file-system", (req, res) => {
+fileRouter.post("/user-file-system", async (req, res) => {
   switch (req.body.type) {
     case "starting-check":
+      try {
+        let result = await db.getFiles({
+          ownerId: req.session.userId,
+          parentId: null,
+        });
+        if (!result || result.length == 0) {
+          result = await db.createFile({
+            ownerId: req.session.userId,
+            type: "folder",
+            name: "root",
+          });
+          const file_path = path.resolve(
+            path.dirname(import.meta.dirname) +
+              "/private/assets/user_files/" +
+              req.session.userId
+          );
+          if (!fs.existsSync(file_path)) {
+            fs.mkdirSync(file_path, { recursive: true });
+          }
+          return res.status(200).json({
+            status: true,
+            msg: "User file system initialized",
+            data: { fileList: [], fileId: result._id },
+          });
+        }
+        const files = await db.getFiles({ parentId: result[0]._id });
+        res.status(200).json({
+          status: true,
+          msg: "User file system exists",
+          data: { fileList: files, fileId: result[0]._id },
+        });
+      } catch (err) {
+        console.log(err);
+        res
+          .status(500)
+          .json({ status: false, msg: "User file system error occurred" });
+      }
       break;
     default:
       res.status(400).json({ status: false, msg: "Invalid type" });

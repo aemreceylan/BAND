@@ -5,6 +5,7 @@ import Category from "./models/Category.js";
 import Message from "./models/Message.js";
 import InviteLink from "./models/InviteLink.js";
 import Profile from "./models/Profile.js";
+import File from "./models/File.js";
 
 const db = (() => {
   async function init() {
@@ -256,6 +257,45 @@ const db = (() => {
     });
   }
 
+  function getFiles(query, limit, skip) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const result = await File.find(query).limit(limit).skip(skip);
+        resolve(result);
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
+
+  function createFile(data) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const newFile = new File(data);
+        const result = await newFile.save();
+        resolve(result);
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
+
+  function editFile(query, data) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        await File.findOneAndUpdate(query, {
+          $set: data,
+        });
+        resolve();
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
+
   return {
     init,
     createUser,
@@ -273,6 +313,9 @@ const db = (() => {
     editUser,
     getProfile,
     editProfile,
+    getFiles,
+    createFile,
+    editFile,
   };
 })();
 
