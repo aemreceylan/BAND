@@ -1,3 +1,4 @@
+// console.clear();
 console.log("Server is starting...");
 
 import config from "./config.js";
@@ -393,7 +394,7 @@ export const userList = (() => {
 
 httpServer.listen(config.server.http.port, () => {
   console.log(
-    "Server address : https://" +
+    "Server address : http://" +
       config.server.http.ip +
       ":" +
       config.server.http.port

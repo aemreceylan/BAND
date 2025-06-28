@@ -71,12 +71,6 @@ export default function WSProvider({ children }) {
   useEffect(() => {}, [profileScreen]);
 
   useEffect(() => {
-    if (userFileSystemData) {
-      console.log(userFileSystemData.msg);
-    }
-  }, [userFileSystemData]);
-
-  useEffect(() => {
     if (hubSettingsRequestData) {
       console.log(hubSettingsRequestData.msg);
     }

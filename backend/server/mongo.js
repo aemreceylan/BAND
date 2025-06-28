@@ -285,10 +285,26 @@ const db = (() => {
   function editFile(query, data) {
     return new Promise(async (resolve, reject) => {
       try {
-        await File.findOneAndUpdate(query, {
-          $set: data,
-        });
-        resolve();
+        const response = await File.findOneAndUpdate(
+          query,
+          {
+            $set: data,
+          },
+          { new: true }
+        );
+        resolve(response);
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
+
+  function deleteFile(query) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const result = await File.findOneAndDelete(query);
+        resolve(result);
       } catch (err) {
         console.log(err);
         reject();
@@ -316,6 +332,7 @@ const db = (() => {
     getFiles,
     createFile,
     editFile,
+    deleteFile,
   };
 })();
 

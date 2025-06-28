@@ -6,6 +6,7 @@ import config from "../config.js";
 import { createRateLimiter } from "../utils.js";
 
 import db from "../mongo.js";
+import { type } from "os";
 
 const fileRouter = express.Router();
 
@@ -146,14 +147,22 @@ fileRouter.post("/user-file-system", async (req, res) => {
           return res.status(200).json({
             status: true,
             msg: "User file system initialized",
-            data: { fileList: [], fileId: result._id },
+            data: {
+              type: "get-root-directory",
+              fileList: [],
+              folderId: result._id,
+            },
           });
         }
         const files = await db.getFiles({ parentId: result[0]._id });
         res.status(200).json({
           status: true,
           msg: "User file system exists",
-          data: { fileList: files, fileId: result[0]._id },
+          data: {
+            type: "get-root-directory",
+            fileList: files,
+            folderId: result[0]._id,
+          },
         });
       } catch (err) {
         console.log(err);
@@ -162,30 +171,137 @@ fileRouter.post("/user-file-system", async (req, res) => {
           .json({ status: false, msg: "User file system error occurred" });
       }
       break;
-    case "create-folder":
+    case "create-file":
       try {
-        result = await db.createFile({
+        if (
+          !req.body.data.name ||
+          !req.body.data.type ||
+          !req.body.data.parentId
+        ) {
+          throw new Error("Missing required fields");
+        }
+        let response = await db.createFile({
           ownerId: req.session.userId,
-          type: "folder",
-          name: req.body.name,
-          parentId: req.body.parentId,
+          type: req.body.data.type,
+          name: req.body.data.name,
+          parentId: req.body.data.parentId,
+        });
+        if (response.type == "file") {
+          const file_path = path.resolve(
+            path.dirname(import.meta.dirname) +
+              "/private/assets/user_files/" +
+              req.session.userId
+          );
+          if (!fs.existsSync(file_path)) {
+            throw new Error("User file directory does not exist");
+          }
+          const newFilePath = path.join(
+            file_path,
+            response.id + path.extname(response.name)
+          );
+          fs.writeFileSync(newFilePath, "");
+          const url = `http://${config.server.http.ip}:${
+            config.server.http.port
+          }/file/file-system/get-file/${
+            response.id + path.extname(response.name)
+          }`;
+          response = await db.editFile({ _id: response.id }, { URL: url });
+        }
+        if (!response) throw new Error("File creation failed");
+        res.status(200).json({
+          status: true,
+          msg: "File created successfully",
+          data: { type: "get-file", file: response },
         });
       } catch (err) {
         console.log(err);
         res.status(500).json({ status: false, msg: "Error creating folder" });
       }
       break;
-    case "create-file":
+    case "get-directory":
       try {
+        if (!req.body.data.folderId) {
+          throw new Error("Missing folderId");
+        }
+        const files = await db.getFiles({
+          parentId: req.body.data.folderId,
+          ownerId: req.session.userId,
+        });
+        res.status(200).json({
+          status: true,
+          msg: "Directory retrieved successfully",
+          data: {
+            type: "get-directory",
+            fileList: files,
+          },
+        });
       } catch (err) {
         console.log(err);
-        res.status(500).json({ status: false, msg: "Error creating folder" });
+        res
+          .status(500)
+          .json({ status: false, msg: "Error retrieving directory" });
+      }
+      break;
+    case "delete-file":
+      try {
+        const result = await Promise.all(
+          req.body.data.fileList.map((fileId) => {
+            return new Promise(async (resolve, reject) => {
+              try {
+                const result = await db.deleteFile({
+                  _id: fileId,
+                  ownerId: req.session.userId,
+                });
+                fs.unlinkSync(
+                  path.resolve(
+                    path.dirname(import.meta.dirname) +
+                      "/private/assets/user_files/" +
+                      req.session.userId +
+                      "/" +
+                      fileId +
+                      path.extname(result.name)
+                  )
+                );
+                resolve(result);
+              } catch (err) {
+                reject(err);
+              }
+            });
+          })
+        );
+        console.log(result);
+        res.status(200).json({
+          status: true,
+          msg: "Files deleted",
+          data: { fileList: result, type: "delete-file" },
+        });
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: false, msg: "Error deleting file" });
       }
       break;
     default:
       res.status(400).json({ status: false, msg: "Invalid type" });
       break;
   }
+});
+
+fileRouter.get("/file-system/get-file/:id", (req, res) => {
+  const new_path = path.resolve(
+    path.dirname(import.meta.dirname) +
+      "/private/assets/user_files/" +
+      req.session.userId +
+      "/" +
+      req.params.id
+  );
+
+  res.sendFile(new_path, (err) => {
+    if (err) {
+      console.log(err);
+      console.log(new_path);
+      res.status(404).end("File not found.");
+    }
+  });
 });
 
 fileRouter.get("/*joker", (req, res) => {
