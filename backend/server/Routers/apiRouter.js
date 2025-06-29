@@ -335,6 +335,8 @@ apiRouter.post("/login", async (req, res) => {
     req.session.cookie.maxAge = 86400000 * 2;
     req.session.profileId = result.profile;
     req.session.userId = result.id;
+    req.session.profilePhotoURL = result.profilePhotoURL;
+    req.session.nick = result.nick;
     res.cookie("authToken", authToken, {
       httpOnly: true,
       secure: config.server.https.status,
@@ -401,6 +403,8 @@ apiRouter.get("/session-check", (req, res) => {
       authToken: req.session.authToken,
       profileId: req.session.profileId,
       userId: req.session.userId,
+      profilePhotoURL: req.session.profilePhotoURL,
+      nick: req.session.nick,
     });
   else {
     res.status(401).json({ status: false, message: "Session check failed" });

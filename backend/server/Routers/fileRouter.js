@@ -2,11 +2,12 @@ import express from "express";
 import path from "path";
 import multer from "multer";
 import fs from "fs";
+import archiver from "archiver";
+
 import config from "../config.js";
 import { createRateLimiter } from "../utils.js";
 
 import db from "../mongo.js";
-import { type } from "os";
 
 const fileRouter = express.Router();
 
@@ -205,7 +206,10 @@ fileRouter.post("/user-file-system", async (req, res) => {
           }/file/file-system/get-file/${
             response.id + path.extname(response.name)
           }`;
-          response = await db.editFile({ _id: response.id }, { URL: url });
+          response = await db.editFile(
+            { _id: response.id },
+            { URL: url, size: fs.statSync(newFilePath).size }
+          );
         }
         if (!response) throw new Error("File creation failed");
         res.status(200).json({
@@ -244,24 +248,49 @@ fileRouter.post("/user-file-system", async (req, res) => {
       break;
     case "delete-file":
       try {
-        const result = await Promise.all(
-          req.body.data.fileList.map((fileId) => {
+        if (!req.body.data.fileList || req.body.data.fileList.length == 0)
+          throw new Error("No files to delete");
+        if (!Array.isArray(req.body.data.fileList))
+          throw new Error("fileList must be an array");
+
+        const reqFileList = req.body.data.fileList;
+        const fileList = [];
+        while (reqFileList.length > 0) {
+          for (const index in reqFileList) {
+            if (reqFileList[index].type == "folder") {
+              const childs = await db.getFiles({
+                parentId: reqFileList[index]._id,
+                ownerId: req.session.userId,
+              });
+              fileList.push(reqFileList[index]);
+              reqFileList.splice(index, 1, ...childs);
+              break;
+            } else if (reqFileList[index].type == "file") {
+              fileList.push(reqFileList[index]);
+              reqFileList.splice(index, 1);
+              break;
+            }
+          }
+        }
+        const result = await Promise.allSettled(
+          fileList.map((file) => {
             return new Promise(async (resolve, reject) => {
               try {
                 const result = await db.deleteFile({
-                  _id: fileId,
+                  _id: file._id,
                   ownerId: req.session.userId,
                 });
-                fs.unlinkSync(
-                  path.resolve(
-                    path.dirname(import.meta.dirname) +
-                      "/private/assets/user_files/" +
-                      req.session.userId +
-                      "/" +
-                      fileId +
-                      path.extname(result.name)
-                  )
-                );
+                if (file.type == "file")
+                  fs.unlinkSync(
+                    path.resolve(
+                      path.dirname(import.meta.dirname) +
+                        "/private/assets/user_files/" +
+                        req.session.userId +
+                        "/" +
+                        file._id +
+                        path.extname(result.name)
+                    )
+                  );
                 resolve(result);
               } catch (err) {
                 reject(err);
@@ -269,15 +298,276 @@ fileRouter.post("/user-file-system", async (req, res) => {
             });
           })
         );
-        console.log(result);
+        const sendingResult = result.map((element) => {
+          if (element.status === "fulfilled") {
+            return element.value;
+          }
+        });
         res.status(200).json({
           status: true,
-          msg: "Files deleted",
-          data: { fileList: result, type: "delete-file" },
+          msg: "File(s) deleted",
+          data: { fileList: sendingResult, type: "delete-file" },
         });
       } catch (err) {
         console.log(err);
         res.status(500).json({ status: false, msg: "Error deleting file" });
+      }
+      break;
+    case "rename-file":
+      try {
+        if (!req.body.data.fileId || !req.body.data.name)
+          throw new Error("Missing fileId or name");
+        const response = await db.editFile(
+          { _id: req.body.data.fileId, ownerId: req.session.userId },
+          {
+            name: req.body.data.name,
+          }
+        );
+        if (!response) throw new Error("File not found or rename failed");
+        res.status(200).json({
+          status: true,
+          msg: "File renamed successfully",
+          data: {
+            type: "edit-file",
+            file: response,
+          },
+        });
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: false, msg: "Error renaming file" });
+      }
+      break;
+    case "move-file":
+      try {
+        if (!req.body.data.fileList || req.body.data.fileList.length == 0)
+          throw new Error("No files to move");
+        if (!Array.isArray(req.body.data.fileList))
+          throw new Error("fileList must be an array");
+        if (!req.body.data.folderId) throw new Error("Missing folderId");
+
+        const result = await Promise.allSettled(
+          req.body.data.fileList.map((file) => {
+            return new Promise(async (resolve, reject) => {
+              try {
+                const updatedFile = await db.editFile(
+                  { _id: file._id, ownerId: req.session.userId },
+                  { parentId: req.body.data.folderId }
+                );
+                if (!updatedFile) throw new Error("File not found");
+                resolve(updatedFile);
+              } catch (err) {
+                reject(err);
+              }
+            });
+          })
+        );
+        const sendingResult = result.map((element) => {
+          if (element.status === "fulfilled") {
+            return element.value;
+          }
+        });
+        res.status(200).json({
+          status: true,
+          msg: "File(s) moved",
+          data: { fileList: sendingResult, type: "moved-file" },
+        });
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: false, msg: "Error moving file" });
+      }
+      break;
+    case "copy-file":
+      try {
+        if (!req.body.data.fileList || req.body.data.fileList.length == 0)
+          throw new Error("No files to copy");
+        if (!Array.isArray(req.body.data.fileList))
+          throw new Error("fileList must be an array");
+        if (!req.body.data.folderId) throw new Error("Missing folderId");
+
+        const reqFileList = req.body.data.fileList.map((file) => ({
+          ...file,
+          parentId: req.body.data.folderId,
+        }));
+        const sendingResult = [];
+        const fileList = [];
+        while (reqFileList.length > 0) {
+          for (const index in reqFileList) {
+            if (reqFileList[index].type == "folder") {
+              const { _id, ...fileData } = reqFileList[index];
+              const result = await db.createFile(fileData);
+              const childs = await db.getFiles({
+                parentId: reqFileList[index]._id,
+                ownerId: req.session.userId,
+              });
+              reqFileList.push(
+                ...childs.map((child) => ({
+                  ...child._doc,
+                  parentId: result._id,
+                }))
+              );
+              reqFileList.splice(index, 1);
+              if (result.parentId == req.body.data.folderId) {
+                sendingResult.push(result);
+              }
+              break;
+            } else if (reqFileList[index].type == "file") {
+              fileList.push(reqFileList[index]);
+              reqFileList.splice(index, 1);
+              break;
+            }
+          }
+        }
+        const result = await Promise.allSettled(
+          fileList.map((file) => {
+            return new Promise(async (resolve, reject) => {
+              try {
+                if (file.type == "file") {
+                  const { _id, ...fileData } = file;
+                  const newFile = await db.createFile(fileData);
+                  if (newFile.parentId == req.body.data.folderId) {
+                    sendingResult.push(newFile);
+                  }
+                  fs.copyFileSync(
+                    path.resolve(
+                      path.dirname(import.meta.dirname) +
+                        "/private/assets/user_files/" +
+                        req.session.userId +
+                        "/" +
+                        file._id +
+                        path.extname(file.name)
+                    ),
+                    path.resolve(
+                      path.dirname(import.meta.dirname) +
+                        "/private/assets/user_files/" +
+                        req.session.userId +
+                        "/" +
+                        newFile._id +
+                        path.extname(newFile.name)
+                    )
+                  );
+                  resolve(newFile);
+                }
+              } catch (err) {
+                reject(err);
+              }
+            });
+          })
+        );
+        // const sendingResult = result.map((element) => {
+        //   if (element.status === "fulfilled") {
+        //     return element.value;
+        //   }
+        // });
+        res.status(200).json({
+          status: true,
+          msg: "File(s) copied",
+          data: { fileList: sendingResult, type: "copied-file" },
+        });
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: false, msg: "Error copying file" });
+      }
+      break;
+    case "download-file":
+      try {
+        if (!req.body.data.fileList || req.body.data.fileList.length == 0)
+          throw new Error("No files to download");
+        if (!Array.isArray(req.body.data.fileList))
+          throw new Error("fileList must be an array");
+
+        const tempDir = path.resolve(
+          path.dirname(import.meta.dirname) + "/private/temp/"
+        );
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        const fileName =
+          new Date().getTime() + "_" + req.session.userId + ".zip";
+        const filePath = path.join(tempDir, fileName);
+
+        const zipFile = fs.createWriteStream(filePath);
+
+        zipFile.on("error", function (err) {
+          throw new Error("Error creating zip file: " + err.message);
+        });
+
+        zipFile.on("close", function () {
+          res.setHeader("Access-Control-Expose-Headers", "file-download");
+          res.setHeader("file-download", "yes");
+          res.download(filePath, (err) => {
+            if (err) {
+              console.log(err);
+              res
+                .status(500)
+                .json({ status: false, msg: "Error sending file" });
+            } else {
+              fs.unlinkSync(filePath);
+            }
+          });
+        });
+
+        const archive = archiver("zip", {
+          zlib: { level: 9 },
+        });
+
+        archive.on("error", function (err) {
+          throw err;
+        });
+
+        archive.pipe(zipFile);
+
+        const fileList = req.body.data.fileList.map((file) => ({
+          ...file,
+          filePath: "",
+        }));
+        while (fileList.length > 0) {
+          console.log("===fileList===");
+          console.log(fileList);
+          const file = fileList.shift();
+          console.log("===file===");
+          console.log(file);
+          if (file.type == "folder") {
+            const childs = await db.getFiles({
+              parentId: file._id,
+              ownerId: req.session.userId,
+            });
+            console.log("===childs===");
+            console.log(childs);
+            if (childs.length === 0) {
+              archive.append("", {
+                name: file.filePath + "/" + file.name + "/",
+              });
+            }
+            fileList.push(
+              ...childs.map((child) => ({
+                ...child._doc,
+                filePath: file.filePath + "/" + file.name,
+              }))
+            );
+          } else if (file.type == "file") {
+            const filePath = path.resolve(
+              path.dirname(import.meta.dirname) +
+                "/private/assets/user_files/" +
+                req.session.userId +
+                "/" +
+                file._id +
+                path.extname(file.name)
+            );
+            if (fs.existsSync(filePath)) {
+              archive.file(filePath, {
+                name: file.filePath + "/" + file.name,
+              });
+            } else {
+              console.log(`File not found: ${filePath}`);
+            }
+          }
+        }
+
+        archive.finalize();
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: false, msg: "Error downloading file" });
       }
       break;
     default:

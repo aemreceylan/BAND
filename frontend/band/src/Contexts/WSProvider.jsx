@@ -2,7 +2,6 @@ import { createContext, useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import useFetch from "../hooks/useFetch";
 import useCall from "../hooks/useCall";
-import { use } from "react";
 
 export const WSContext = createContext();
 
@@ -47,6 +46,8 @@ export default function WSProvider({ children }) {
     status: true,
     open: false,
   });
+  const [profilePhotoURL, setProfilePhotoURL] = useState();
+  const [nick, setNick] = useState();
 
   const [csrfRequest, csrfRequestData] = useFetch();
   const [isAuthRequest, isAuthData] = useFetch();
@@ -191,6 +192,8 @@ export default function WSProvider({ children }) {
         setAuthToken(isAuthData.authToken);
         setProfileId(isAuthData.profileId);
         setUserId(isAuthData.userId);
+        setProfilePhotoURL(isAuthData.profilePhotoURL);
+        setNick(isAuthData.nick);
         setSocket(
           io("localhost:3000", {
             auth: { authToken: isAuthData.authToken },
@@ -317,6 +320,10 @@ export default function WSProvider({ children }) {
     setUserFileSystem,
     handleUserFileSystem,
     userFileSystemData,
+    setProfilePhotoURL,
+    profilePhotoURL,
+    setNick,
+    nick,
   };
 
   return (

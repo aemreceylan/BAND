@@ -13,6 +13,8 @@ export default function HubList() {
     setProfileScreen,
     profileId,
     setSelectedChannel,
+    profilePhotoURL,
+    nick,
   } = useContext(WSContext);
   return (
     <>
@@ -49,7 +51,12 @@ export default function HubList() {
                 });
               }}
             >
-              <img src="img/no-profile-photo.png" />
+              <img
+                title={nick ? nick : "Profil"}
+                src={
+                  profilePhotoURL ? profilePhotoURL : "img/no-profile-photo.png"
+                }
+              />
             </div>
           </div>
         </Panel>

@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@dr.pogodin/csurf": "^1.14.1",
+    "archiver": "^7.0.1",
     "argon2": "^0.41.1",
     "bufferutil": "^4.0.9",
     "connect-mongo": "^5.1.0",
