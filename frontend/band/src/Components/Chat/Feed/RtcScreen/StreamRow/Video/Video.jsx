@@ -3,7 +3,6 @@ import "./Video.css";
 import { WSContext } from "../../../../../../Contexts/WSProvider";
 export default function Video({ styles, stream, setRtcVideoFullScreen }) {
   const { userList } = useContext(WSContext);
-  const userRef = useRef(userList.get(stream.userId));
   return (
     <>
       <div className="rtcScreen-streamRow-video" style={styles}>
@@ -21,14 +20,13 @@ export default function Video({ styles, stream, setRtcVideoFullScreen }) {
           <div className="rtcScreen-streamRow-video-photo">
             <img
               src={
-                userRef.current.profilePhotoURL != ""
-                  ? userRef.current.profilePhotoURL
-                  : "img/no-profile-photo.png"
+                userList?.get(stream.userId).profilePhotoURL ||
+                "img/no-profile-photo.png"
               }
             />
           </div>
           <div className="rtcScreen-streamRow-video-nick">
-            <span>{userRef.current.nick}</span>
+            <span>{userList?.get(stream.userId).nick}</span>
           </div>
         </div>
       </div>

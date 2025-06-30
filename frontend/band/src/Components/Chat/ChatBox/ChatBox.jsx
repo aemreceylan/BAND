@@ -22,7 +22,7 @@ export default function ChatBox() {
             text: textareaRef.current.value,
             channelId: selectedChannel.id,
             channelName: selectedChannel.name,
-            files: sendFileData.data,
+            files: sendFileData.data.fileList,
           },
           (data) => {
             console.log(data);

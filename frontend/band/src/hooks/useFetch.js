@@ -25,14 +25,18 @@ export default function useFetch() {
       }
       try {
         const response = await fetch("http://localhost:3000/" + url, data);
-        if (response.headers.get("file-download") && response.headers.get("file-download") == "yes") {
+        if (
+          response.headers.get("file-download") &&
+          response.headers.get("file-download") == "yes"
+        ) {
           const blob = await response.blob();
           setData(blob);
+          if (!response.ok) throw new Error("File download failed");
         } else {
           const _data = await response.json();
           setData(_data);
+          if (!response.ok) throw new Error(_data.msg);
         }
-        if (!response.ok) throw new Error(_data.msg);
       } catch (err) {
         console.log(err);
       } finally {

@@ -82,12 +82,12 @@ export default function Hub() {
         if (uplodadedProfileFile[1] === "photo")
           setUserSettings("set-profile-photo", {
             userId: userId,
-            photoUrl: sendProfileFileData.data[0].url,
+            photoUrl: sendProfileFileData.data.fileList[0].url,
           });
         if (uplodadedProfileFile[1] === "banner")
           setUserSettings("set-profile-banner", {
             profileId: profileId,
-            photoUrl: sendProfileFileData.data[0].url,
+            photoUrl: sendProfileFileData.data.fileList[0].url,
           });
       }
       console.log(sendProfileFileData.msg);

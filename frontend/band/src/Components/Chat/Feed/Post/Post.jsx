@@ -1,13 +1,20 @@
+import { useRef } from "react";
 import Message from "./Message/Message";
 
 import "./Post.css";
+import { useContext } from "react";
+import { WSContext } from "../../../../Contexts/WSProvider";
 
 export default function Post({ data }) {
+  const { userList } = useContext(WSContext);
+
   return (
     <>
       <div className="post">
         <div className="post-account">
-          <img src="img/no-profile-photo.png" />
+          <img
+            src={userList.get(data.sender._id).profilePhotoURL || "img/no-profile-photo.png"}
+          />
         </div>
         <div className="post-content">
           <div className="post-info">

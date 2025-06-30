@@ -102,7 +102,7 @@ const db = (() => {
         const message = await (
           await response.populate({
             path: "sender",
-            select: { nick: 1, _id: 0 },
+            select: { nick: 1, _id: 1 },
           })
         ).populate({ path: "channel", select: { name: 1 } });
         resolve(message._doc);
@@ -130,7 +130,10 @@ const db = (() => {
           .sort({ timestamp: -1 })
           .skip(skip)
           .limit(limit)
-          .populate({ path: "sender", select: { nick: 1, _id: 0 } })
+          .populate({
+            path: "sender",
+            select: { nick: 1, _id: 1 },
+          })
           .populate({ path: "channel", select: { name: 1 } });
 
         resolve(result.reverse());

@@ -166,6 +166,15 @@
   position: relative;
 }
 
+#userFileSystem-files-dragging {
+  width: 40rem;
+}
+
+#userFileSystem-files-dragging img {
+  width: 100%;
+  height: 100%;
+}
+
 #modal-new-form {
   display: flex;
   flex-direction: column;

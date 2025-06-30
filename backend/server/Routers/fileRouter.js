@@ -72,54 +72,93 @@ fileRouter.post("/send-file", createRateLimiter(1000 * 60, 1), (req, res) => {
     }
 
     let info = {};
+    let targetFolder = "";
     try {
       info = JSON.parse(req.body.info);
-      let targetFolder = "";
-      if (info.type === "chat") targetFolder = "chat";
-      else if (info.type === "profile") targetFolder = "profile";
-      else if (info.type === "userFileSystem") targetFolder = "userFileSystem";
+      if (info.type === "chat") targetFolder = "client_uploads/chat";
+      else if (info.type === "profile") targetFolder = "client_uploads/profile";
+      else if (info.type === "user-file-system")
+        targetFolder = "user_files/" + req.session.userId;
       else throw new Error("Invalid info field");
     } catch (err) {
       console.log(err);
       return res.status(400).json({ status: false, msg: "Invalid info field" });
     }
 
-    const movedFiles = [];
-    for (const file of req.files) {
-      const oldPath = file.path;
-      const newDir = path.resolve(
-        path.dirname(import.meta.dirname) +
-          `/private/assets/client_uploads/${targetFolder}`
-      );
-      if (!fs.existsSync(newDir)) {
-        fs.mkdirSync(newDir, { recursive: true });
+    (async () => {
+      const movedFiles = [];
+      for (const file of req.files) {
+        const oldPath = file.path;
+        const newDir = path.resolve(
+          path.dirname(import.meta.dirname) + `/private/assets/${targetFolder}`
+        );
+        if (!fs.existsSync(newDir)) {
+          fs.mkdirSync(newDir, { recursive: true });
+        }
+        const ext = path.extname(file.filename);
+        let result;
+        if (info.type === "user-file-system") {
+          try {
+            if (!info.folderId) throw new Error("Missing folderId");
+            result = await db.createFile({
+              ownerId: req.session.userId,
+              type: ext ? "file" : "folder",
+              name: file.filename,
+              mimeType: file.mimetype || null,
+              size: file.size,
+              parentId: info.folderId,
+            });
+          } catch (err) {
+            console.log(err);
+          }
+        }
+        let name =
+          info.type == "user-file-system"
+            ? result._id
+            : path.basename(file.filename, ext);
+        let new_name = name;
+        let counter = 0;
+        let newPath = path.join(newDir, new_name + ext);
+        while (fs.existsSync(newPath)) {
+          new_name = name + `(${++counter})`;
+          newPath = path.join(newDir, new_name + ext);
+        }
+        fs.renameSync(oldPath, newPath);
+        if (info.type === "user-file-system") {
+          await db.editFile(
+            {
+              _id: result.id,
+              ownerId: req.session.userId,
+            },
+            {
+              URL: `http://${config.server.http.ip}:${
+                config.server.http.port
+              }/file/assets/${targetFolder}/${
+                result.id + path.extname(result.name)
+              }`,
+            }
+          );
+          movedFiles.push(result);
+        } else {
+          movedFiles.push({
+            originalName: Buffer(file.originalname, "latin1").toString("utf-8"),
+            url: `http://${config.server.http.ip}:${
+              config.server.http.port
+            }/file/assets/${targetFolder}/${encodeURI(new_name + ext)}`,
+            size: file.size,
+          });
+        }
       }
-      const ext = path.extname(file.filename);
-      let name = path.basename(file.filename, ext);
-      let new_name = name;
-      let counter = 0;
-      let newPath = path.join(newDir, new_name + ext);
-      while (fs.existsSync(newPath)) {
-        new_name = name + `(${++counter})`;
-        newPath = path.join(newDir, new_name + ext);
-      }
-      fs.renameSync(oldPath, newPath);
-      movedFiles.push({
-        originalName: Buffer(file.originalname, "latin1").toString("utf-8"),
-        url: `http://${config.server.http.ip}:${
-          config.server.http.port
-        }/file/assets/client_uploads/${targetFolder}/${encodeURI(
-          new_name + ext
-        )}`,
-        size: file.size,
-      });
-    }
 
-    res.json({
-      status: true,
-      msg: "Files uploaded and moved successfully",
-      data: movedFiles,
-    });
+      res.json({
+        status: true,
+        msg: "Files uploaded and moved successfully",
+        data: {
+          fileList: movedFiles,
+          type: info.type === "user-file-system" ? "uploaded-file" : null,
+        },
+      });
+    })();
   });
 });
 
@@ -453,11 +492,6 @@ fileRouter.post("/user-file-system", async (req, res) => {
             });
           })
         );
-        // const sendingResult = result.map((element) => {
-        //   if (element.status === "fulfilled") {
-        //     return element.value;
-        //   }
-        // });
         res.status(200).json({
           status: true,
           msg: "File(s) copied",
@@ -522,18 +556,12 @@ fileRouter.post("/user-file-system", async (req, res) => {
           filePath: "",
         }));
         while (fileList.length > 0) {
-          console.log("===fileList===");
-          console.log(fileList);
           const file = fileList.shift();
-          console.log("===file===");
-          console.log(file);
           if (file.type == "folder") {
             const childs = await db.getFiles({
               parentId: file._id,
               ownerId: req.session.userId,
             });
-            console.log("===childs===");
-            console.log(childs);
             if (childs.length === 0) {
               archive.append("", {
                 name: file.filePath + "/" + file.name + "/",

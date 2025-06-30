@@ -282,6 +282,32 @@ apiRouter.post(
         try {
           await db.editUser({ _id: req.body.data }, { isBanned: true });
           res.status(201).json({ status: true, msg: "User banned" });
+          await userList.getUsersFromDB();
+          userList.emitList();
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ status: false, msg: "Error" });
+        }
+        break;
+      case "admin-client":
+        try {
+          await db.editUser({ _id: req.body.data }, { roles: ["1"] });
+          res.status(201).json({ status: true, msg: "User made admin" });
+          await userList.getUsersFromDB();
+          userList.emitList();
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ status: false, msg: "Error" });
+        }
+        break;
+      case "no-admin-client":
+        try {
+          await db.editUser({ _id: req.body.data }, { roles: ["0"] });
+          res
+            .status(201)
+            .json({ status: true, msg: "User demoted from admin" });
+          await userList.getUsersFromDB();
+          userList.emitList();
         } catch (err) {
           console.log(err);
           res.status(500).json({ status: false, msg: "Error" });

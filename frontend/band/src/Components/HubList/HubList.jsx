@@ -4,6 +4,7 @@ import Panel from "../Panel/Panel";
 import HubListElement from "./HubElement/HubListElement";
 import "./HubList.css";
 import { WSContext } from "../../Contexts/WSProvider";
+import { useRef } from "react";
 
 export default function HubList() {
   const {
@@ -12,10 +13,13 @@ export default function HubList() {
     setContextMenu,
     setProfileScreen,
     profileId,
+    userId,
     setSelectedChannel,
     profilePhotoURL,
     nick,
+    userList,
   } = useContext(WSContext);
+
   return (
     <>
       <div id="hubList">
@@ -54,7 +58,8 @@ export default function HubList() {
               <img
                 title={nick ? nick : "Profil"}
                 src={
-                  profilePhotoURL ? profilePhotoURL : "img/no-profile-photo.png"
+                  userList?.get(userId).profilePhotoURL ||
+                  "img/no-profile-photo.png"
                 }
               />
             </div>

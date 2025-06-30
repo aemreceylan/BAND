@@ -1,8 +1,9 @@
 import "./UserFileSystemScreen.css";
 import UserFileSystemElement from "./UserFileSystemRow/UserFileSystemElemenent";
 import Modal from "../../../UI/Modal/Modal";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useRef } from "react";
 import { WSContext } from "../../../../Contexts/WSProvider";
+import useFetch from "../../../../hooks/useFetch";
 
 export default function UserFileSystemScreen() {
   const { handleUserFileSystem, userFileSystemData } = useContext(WSContext);
@@ -15,10 +16,52 @@ export default function UserFileSystemScreen() {
   const [selectedItemCount, setSelectedItemCount] = useState();
   const [moveFileList, setMoveFileList] = useState();
   const [copyFileList, setCopyFileList] = useState();
+  const [uploadFiles, setUploadFiles] = useState([]);
+  const userFileSystemUploadFileRef = useRef();
+
+  const [sendFilesRequest, sendFilesData] = useFetch();
 
   useEffect(() => {
     if (!folderId) handleUserFileSystem("starting-check");
   }, []);
+
+  useEffect(() => {
+    if (sendFilesData) {
+      if (sendFilesData.status) {
+        const map = new Map(fileList);
+        sendFilesData.data.fileList.forEach((element) => {
+          map.set(element._id, {
+            ...element,
+            isSelected: false,
+          });
+        });
+        setFileList(map);
+      }
+      console.log(sendFilesData.msg);
+    }
+  }, [sendFilesData]);
+
+  useEffect(() => {
+    if (uploadFiles && uploadFiles.length > 0) {
+      const formData = new FormData();
+      uploadFiles.forEach((file) => {
+        formData.append("file", file, file.name);
+      });
+      formData.append(
+        "info",
+        JSON.stringify({
+          type: "user-file-system",
+          folderId: folderId,
+        })
+      );
+      sendFilesRequest({
+        url: "file/send-file",
+        method: "POST",
+        body: formData,
+      });
+      setUploadFiles([]);
+    }
+  }, [uploadFiles]);
 
   useEffect(() => {
     if (folderId) {
@@ -284,6 +327,33 @@ export default function UserFileSystemScreen() {
                 >
                   <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0" />
                 </svg>
+              </div>
+              <div
+                id="userFileSystem-topBar-new-upload-button"
+                onClick={() => {
+                  userFileSystemUploadFileRef.current.click();
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="1em"
+                  height="1em"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                >
+                  <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707z" />
+                </svg>
+                <input
+                  ref={userFileSystemUploadFileRef}
+                  style={{ display: "none" }}
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    if (files?.length != 0)
+                      setUploadFiles((prev) => [...prev, ...files]);
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -654,7 +724,12 @@ export default function UserFileSystemScreen() {
                     data={{
                       list: [
                         [file.name, { width: "70%" }],
-                        [file.size / 1024 ** 2 + " MB", { width: "15%" }],
+                        [
+                          file.type == "file"
+                            ? (file.size / 1024 ** 2).toFixed(2) + " MB"
+                            : "-",
+                          { width: "15%" },
+                        ],
                         [
                           `${new Date(file.updatedAt)
                             .getDate()
